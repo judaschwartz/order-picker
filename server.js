@@ -14,7 +14,7 @@ const server = http.createServer((req, res) => {
       if (query.lastUser && query.comment) {
         var order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
         if (query.comment !== order[2][0]) {
-          order[2][0] = query.comment.replace(',', '').replace(/[\n\r]/g, ' ')
+          order[2][0] = query.comment.replaceAll(',', '').replace(/[\n\r]/g, '&#010;')
           fs.writeFileSync(`orders/${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
         }
       }
@@ -35,7 +35,7 @@ const server = http.createServer((req, res) => {
             order[1][0] = query.picker?.replace(',', '')
           }
         }
-        order[2][0] = cmt?.replace(',', '')?.replace(/[\n\r]/g, ' ')
+        order[2][0] = cmt?.replaceAll(',', '')?.replace(/[\n\r]/g, '&#010;')
         order[2][lastItm] = query.qty
         fs.writeFileSync(`orders/${user}.csv`, order.map(l => l.join(',')).join("\n"))
       }
