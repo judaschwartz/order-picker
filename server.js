@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const url = require('url');
 const path = require('path');
+const { networkInterfaces } = require('os')
 
 const server = http.createServer((req, res) => {
   const { pathname, query } = url.parse(req.url, true);
@@ -105,7 +106,8 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = 3000; // Choose a port (e.g., 3000)
-const LOCAL_IP = '192.168.1.22'; // Use the local IP obtained from ifconfig
+// Use the local IP obtained from ifconfig
+const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat().filter(({ family, internal }) => family === "IPv4" && !internal).map(({ address }) => address)[0]
 
 server.listen(PORT, LOCAL_IP, () => {
   console.log(`Server is running on http://${LOCAL_IP}:${PORT}/`);
