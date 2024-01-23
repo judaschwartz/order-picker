@@ -142,3 +142,8 @@ tr:nth-child(odd) {
   height: 20px;
   width: 20px;
 }
+
+.show-label {
+  text-align: left;
+  margin: 10px 0 5px 35px;
+}

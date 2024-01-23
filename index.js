@@ -21,13 +21,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 })
 function increment() {
-  const input = document.getElementById('qty');
-  input.value = Number(input.value) + 1;
+  const input = document.getElementById('qty')
+  input.value = Number(input.value) + 1
 }
 
 function decrement() {
-  const input = document.getElementById('qty');
+  const input = document.getElementById('qty')
   if (input.value > 0) {
-    input.value = Number(input.value) - 1;
+    input.value = Number(input.value) - 1
   }
 }
