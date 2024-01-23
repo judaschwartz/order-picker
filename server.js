@@ -96,7 +96,7 @@ const server = http.createServer((req, res) => {
             .replace('FILLED', order[2][itm] !== '0' ? order[2][itm] : '')
             .replaceAll('ITM', itm).replace('ULAST', userName)
             .replace('NAME', order[0][itm])
-        } else if (filePath === './start-index.html') {
+        } else if (filePath === './start-index.js') {
           content = content.replace('ORDERS', fs.readFileSync('orders.json').toString())
         }
         res.end(content, 'utf-8')
