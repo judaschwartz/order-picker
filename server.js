@@ -43,11 +43,11 @@ const server = http.createServer((req, res) => {
       }
       var userName = order[0][0]
       var itm = query.showAll ? 0 : order[1].slice(lastItm + 1).findIndex((n, i) => Number(n) || Number(order[2][i + lastItm + 1]))
-      var done = order[0].slice(0, lastItm +1).map((c, i) => {
+      var done = order[0].slice(0, lastItm +1).map((name, i) => {
         const ordered = Number(order[1][i]) 
         const got = Number(order[2][i])
         const klass = ordered !== got ? ' class="yellow"' : ''
-        return ordered || got ? `<tr${klass}><td>${ordered}</td><td>${c}</td><td>A-${i}</td><td>${got}</td></tr>` : ''
+        return ordered || got ? `<tr${klass}><td>${ordered}</td><td>${name}</td><td>A-${i}</td><td>${got}</td></tr>` : ''
       }).filter(Boolean)
       var next = order[1][0]
       const headers = '<tr><th width="30px">#</th><th>Item Name</th><th width="40px">ID</th><th width="30px">Got</th></tr>'
@@ -57,9 +57,10 @@ const server = http.createServer((req, res) => {
       } else {
         done = `<table>${headers}${done.reverse().join('')}</table>`
         itm = itm + lastItm + 1
-        next = order[0].slice(itm + 1).map((v, i) => {
-          const c = i + itm + 1
-          return Number(order[1][c]) ? `<tr><td width="40px">A-${c}</td><td>${v}</td><td width="30px">${order[1][c] - order[2][c]}</td></tr>` : ''
+        next = order[0].slice(itm + 1).map((name, i) => {
+          const id = i + itm + 1
+          const pick = Number(order[1][id]) - (Number(order[2][id]) || 0)
+          return Number(order[1][id]) ? `<tr><td width="40px">A-${id}</td><td>${name}</td><td width="30px">${pick}</td></tr>` : ''
         }).filter(Boolean)
         next = `<table>${next.join('')}</table>`
       }

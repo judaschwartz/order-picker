@@ -8,17 +8,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Start Filling<br>an Order</h1>
-  <div class="warn">WARN</div>
-  <form onsubmit="validateForm(event)" action="/">
-    <label for="data">Enter Order #:</label>
-    <input type="number" id="user" name="user" required>
-    <label for="last">Last Name</label>
-    <input type="text" id="last" name="last" required>
-    <label for="picker">Picked by</label>
-    <input type="text" id="picker" name="picker" required value="">
-    <button type="submit">Start</button>
-  </form>
+  <div class="picker-app">
+    <h1>Start Filling<br>an Order</h1>
+    <div class="warn">WARN</div>
+    <form onsubmit="validateForm(event)" action="/">
+      <label for="data">Enter Order #:</label>
+      <input type="number" id="user" name="user" required>
+      <label for="last">Last Name</label>
+      <input type="text" id="last" name="last" required>
+      <label for="picker">Picked by</label>
+      <input type="text" id="picker" name="picker" required value="">
+      <button type="submit">Start</button>
+    </form>
+  </div>
   <script>
     function validateForm(event) {
       const orders = JSON.parse(`ORDERS`)
