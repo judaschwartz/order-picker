@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Last page</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Finished order #USER for ULAST</h1>
+  <div class="warn">WARN</div>
+  <form action="/">
+    <input type="text" id="lastUser" name="lastUser" hidden value="USER">
+    <label for="comment">Comments</label>
+    <textarea type="text" id="comment" name="comment">CMT</textarea>
+    <label for="picker">Picked by</label>
+    <input type="text" id="picker" name="picker" value="NEXT_LIST" disabled>
+    <button type="submit">Submit and Complete order #USER</button>
+  </form>
+  <a href="javascript:history.go(-1)">Back</a>
+  <div>
+    <p>Items Picked</p>
+    DONE_LIST
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>

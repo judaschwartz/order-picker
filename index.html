@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Next Item</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Filling order #USER for ULAST</h1>
+  <div class="warn">WARN</div>
+  <form onsubmit="validateForm(event)" action="/">
+    <p><b># A-ITM</b>(NAME)</p>
+    <label for="qty"><b id="excepted">QTY</b></label>
+    <input type="text" id="user" name="user" hidden value="USER">
+    <input type="text" id="itm" name="itm" hidden value="ITM">
+    <div class="qty-box">
+      <button type="button" onclick="decrement()">-</button>
+      <input type="number" id="qty" name="qty" inputmode="numeric" value="FILLED" autofocus>
+      <button type="button" onclick="increment()">+</button>
+    </div>
+    <button type="submit">Next</button>
+    <label for="comment">Order Comments</label>
+    <textarea type="text" id="comment" name="comment">CMT</textarea>
+    <label for="showAll">Show all Items <small>(even if 0 ordered)</small></label>
+    <input name="showAll" id="showAll" type="checkbox">
+  </form>
+  <a href="javascript:history.go(-1)">Back</a>
+  <div class="other-itms">
+    <p>Next Items</p>
+    NEXT_LIST
+  </div>
+  <div class="other-itms">
+    <p>Items Picked</p>
+    DONE_LIST
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>

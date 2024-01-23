@@ -1,0 +1,142 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  text-align: center;
+}
+
+h1 {
+  color: #333;
+  margin: 0 0 20px;
+}
+
+form b {
+  font-size: 24px;
+  display: block;
+}
+
+p {
+  margin: 5px 0;
+}
+
+form label b {
+  font-size: 44px;
+  background: rgb(255, 255, 160);
+  margin: 10px 30%;
+  border-radius: 10px;
+}
+
+.other-itms {
+  margin: 10px 20px;
+  height: 150px;
+  overflow: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 5px;
+  text-align: left;
+}
+
+.yellow {
+  color: #fa6c39;
+  font-weight: bold;
+}
+
+form {
+  max-width: 400px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+textarea {
+  
+}
+
+input[type="number"] {
+  font-size: 40px;
+  text-align: center;
+}
+
+button {
+  background-color: #4caf50;
+  color: #fff;
+  padding: 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  margin: 25px 0px 15px;
+  font-size: 22px;
+}
+
+a {
+  color: #4caf50;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 20px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Apply a different shade of grey to odd rows */
+tr:nth-child(odd) {
+  background-color: #e6e6e6;
+}
+
+.qty-box {
+  display: flex;
+}
+
+.qty-box input {
+  width: 25%;
+  margin: 0 10%;
+}
+
+.qty-box button {
+  width: 30%;
+  margin: 5px 0;
+}
+
+.warn {
+  color: red;
+  font-weight: bold;
+}
+
+#showAll {
+  float: left;
+  margin-top: -25px;
+  height: 20px;
+  width: 20px;
+}

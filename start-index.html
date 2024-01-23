@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start new order</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Start Filling<br>an Order</h1>
+  <div class="warn">WARN</div>
+  <form onsubmit="validateForm(event)" action="/">
+    <label for="data">Enter Order #:</label>
+    <input type="number" id="user" name="user" required>
+    <label for="last">Last Name</label>
+    <input type="text" id="last" name="last" required>
+    <label for="picker">Picked by</label>
+    <input type="text" id="picker" name="picker" required value="">
+    <button type="submit">Start</button>
+  </form>
+  <script>
+    function validateForm(event) {
+      const orders = JSON.parse(`ORDERS`)
+      const user = document.getElementById('user').value
+      const last = document.getElementById('last').value.toLocaleUpperCase()
+      if (orders[user] !== last) {
+        event.preventDefault()
+        alert(`Order #${user} does not match the name "${last}"
+        the correct last name is "${orders[user]}"`)
+      }
+    }
+    let params = (new URL(document.location)).searchParams
+    document.getElementById('picker').value = params.get('picker')
+  </script>
+</body>
+</html>
