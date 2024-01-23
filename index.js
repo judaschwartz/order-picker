@@ -7,7 +7,6 @@ function validateForm(event) {
     if (!confirm(`They have ${qty} but they ordered ${excepted}, do you still want to continue to the next item?`)) {
       console.log(qty, excepted)
       event.preventDefault()
-      return false
     }
   }
 }

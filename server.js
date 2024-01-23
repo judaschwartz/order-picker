@@ -92,7 +92,7 @@ const server = http.createServer((req, res) => {
             .replace('DONE_LIST', done)
             .replace('NEXT_LIST', next)
             .replace('CMT', cmt)
-            .replace('QTY', order[1][itm])
+            .replace('QTY', order[1][itm] || '0')
             .replace('FILLED', order[2][itm] !== '0' ? order[2][itm] : '')
             .replaceAll('ITM', itm).replace('ULAST', userName)
             .replace('NAME', order[0][itm])
