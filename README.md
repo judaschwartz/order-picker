@@ -1,9 +1,12 @@
 # Order Picking Application
 
-### Prep
-To use this tool place a file named `allOrders.csv` in the `orders` dir, that file should have the orderIDs in the first column the last names in the second column and then the items in the order that they are laid out on the pickup line.
-Run the `node makeOrders.js` script. This will create an `orders.json` file containing the ids and last names, as well as an <ORDER_ID>.csv file in the `orders` dir for each order.
-### Running the Application
-Once those files are created use the `node server.js` command to run the server, then any device on the same wifi network as the server can access the application by going in their browser to the IP in the output.
-### Getting the Results
-To create csv files summarizing the discrepancies of the picked orders vs the actual orders run the `node processDiffs.js` command and two files will be created named `resultsByItm.csv` and `resultsByUser.csv`
+### Preparation:
+To utilize this tool, follow these steps:
+
+1. Place a file named `allOrders.csv` in the `orders` directory.
+2. Ensure the file includes headers in the top row with the names of the items. The orderIDs should be in the first column, last names in the second column, and then each item in the same sequence as they appear on the pickup line.
+3. Run the `node makeOrders.js` script. This will generate an `orders.json` file with IDs and last names, along with an `<ORDER_ID>.csv` file in the `orders` directory for each order.
+### Running the Application:
+After creating the necessary files, execute the command `node server.js` to start the server. Once the server is running, any device on the same Wi-Fi network can access the application by entering the IP address from the output in their browser.
+### Obtaining Results:
+To generate CSV files summarizing discrepancies between picked and actual orders, execute the command node processDiffs.js. This will create two files: `resultsByItm.csv` and `resultsByUser.csv`
