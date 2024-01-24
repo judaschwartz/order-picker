@@ -12,7 +12,7 @@ orderIds.forEach(id => {
   } else {
     order[0].slice(1).forEach((name, i) => {
       const ordered = Number(order[1][i + 1]) || 0
-      const picked = Number(order[2]?.[i + 1]) || 0
+      const picked = Number(order[2][i + 1]) || 0
       if (ordered != picked) {
         diff.push(`${ordered - picked} "${name}"`)
         resultsByItm[name] = resultsByItm[name] ? [...resultsByItm[name], [`${ordered - picked} ${id}`]] : [[`${ordered - picked} ${id}`]]

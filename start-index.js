@@ -4,8 +4,12 @@ function validateForm(event) {
   const last = document.getElementById('last').value.toLocaleUpperCase()
   if (orders[user] !== last) {
     event.preventDefault()
-    alert(`Order #${user} does not match the name "${last}"
-    the correct last name is "${orders[user]}"`)
+    if (orders[user]) {
+      alert(`Order #${user} does not match the name "${last}"
+      the correct last name is "${orders[user]}"`)
+    } else {
+      alert(`Order #${user} is not on our list in orders.json`)
+    }
   }
 }
 let params = (new URL(document.location)).searchParams
