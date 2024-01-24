@@ -126,12 +126,12 @@ tr:nth-child(odd) {
 
 .qty-box input {
   width: 28%;
-  margin: 0 10%;
+  margin: 0 8%;
 }
 
 .qty-box button {
-  width: 26%;
-  margin: 5px 0;
+  width: 28%;
+  margin: 0;
 }
 
 .warn {
