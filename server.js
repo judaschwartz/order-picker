@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
         fs.writeFileSync(`orders/${user}.csv`, order.map(l => l.join(',')).join("\n"))
       }
       if (order[1][0].includes(':')) {
-        warn = 'This order has already been worked on by a prior person and the input default values reflect what has already been given'
+        warn = 'THIS ORDER HAS BEEN PICKED<br>(at least partially)<br><small>Inputs default number is the qty already picked</small><br>'
       }
       var userName = order[0][0]
       var itm = query.showAll ? 0 : order[1].slice(lastItm + 1).findIndex((n, i) => Number(n) || Number(order[2][i + lastItm + 1]))
@@ -110,6 +110,6 @@ const PORT = 3000 // Choose a port (e.g., 3000)
 const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat().find(({ family, internal, address }) => family === "IPv4" && !internal && address.startsWith('192.168.')).address
 
 server.listen(PORT, LOCAL_IP, () => {
-  console.log(`Server is running on http://${LOCAL_IP}:${PORT}/`)
+  console.log(`Server is running on \nhttp://${LOCAL_IP}:${PORT}/`)
 })
 

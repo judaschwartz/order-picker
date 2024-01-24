@@ -1,5 +1,5 @@
 const fs = require('fs')
-const orders = fs.readFileSync('orders/testraw.csv').toString().split("\n")
+const orders = fs.readFileSync('orders/allOrders.csv').toString().split("\n")
 
 const jsonFile = {}
 orders.slice(1).forEach(l => {

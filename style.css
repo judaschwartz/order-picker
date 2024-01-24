@@ -136,6 +136,11 @@ tr:nth-child(odd) {
   font-weight: bold;
 }
 
+.warn small {
+  color: rgb(25, 25, 25);
+  font-weight: normal;
+}
+
 #showAll {
   float: left;
   margin-top: -25px;
