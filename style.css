@@ -25,9 +25,11 @@ p {
 
 form label b {
   font-size: 44px;
-  background: rgb(255, 255, 160);
-  margin: 10px 30%;
-  border-radius: 10px;
+  background: #fffc6a;
+  padding: 5px 0;
+  border-radius: 15px;
+  width: 100px;
+  display: inline-block;
 }
 
 .other-itms {
@@ -76,7 +78,7 @@ textarea {
 }
 
 textarea {
-  
+  margin: 5px 0;
 }
 
 input[type="number"] {
@@ -87,14 +89,14 @@ input[type="number"] {
 button {
   background-color: #4caf50;
   color: #fff;
-  padding: 20px;
+  padding: 30px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   display: block;
   width: 100%;
   margin: 25px 0px 15px;
-  font-size: 22px;
+  font-size: 36px;
 }
 
 a {
@@ -119,15 +121,16 @@ tr:nth-child(odd) {
 
 .qty-box {
   display: flex;
+  padding: 5px 0 20px;
 }
 
 .qty-box input {
-  width: 25%;
+  width: 28%;
   margin: 0 10%;
 }
 
 .qty-box button {
-  width: 30%;
+  width: 26%;
   margin: 5px 0;
 }
 
@@ -143,9 +146,9 @@ tr:nth-child(odd) {
 
 #showAll {
   float: left;
-  margin-top: -25px;
-  height: 20px;
-  width: 20px;
+  margin: -28px 0 0;
+  height: 25px;
+  width: 25px;
 }
 
 .show-label {
