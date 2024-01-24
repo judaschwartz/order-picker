@@ -1,11 +1,10 @@
-const http = require('http')
+const { createServer } = require('http')
 const fs = require('fs')
-const url = require('url')
-const path = require('path')
+const { parse } = require('url')
 const { networkInterfaces } = require('os')
 
-const server = http.createServer((req, res) => {
-  const { pathname, query } = url.parse(req.url, true)
+const server = createServer((req, res) => {
+  const { pathname, query } = parse(req.url, true)
   if (req.method === 'GET') {
     let warn = ''
     let filePath = '.' + pathname
@@ -79,11 +78,11 @@ const server = http.createServer((req, res) => {
       warn = error
       filePath = './error.html'
     }
-    const extname = String(path.extname(filePath)).toLowerCase()
+    const extname = filePath.split('.').slice(-1)[0].toLowerCase()
     const contentType = {
-      '.html': 'text/html',
-      '.css': 'text/css',
-      '.js': 'text/javascript',
+      'html': 'text/html',
+      'css': 'text/css',
+      'js': 'text/javascript',
     }[extname] || 'application/octet-stream'
 
     fs.readFile(filePath, (error, content) => {
