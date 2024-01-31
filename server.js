@@ -9,12 +9,13 @@ const server = createServer((req, res) => {
     let warn = ''
     let filePath = '.' + pathname
     const user = query.user
+    let comment = query.comment
     try {
       if (filePath === './' && !fs.existsSync(`orders/${user}.csv`)) {
-        if (query.lastUser && typeof query.comment !== 'undefined' ) {
+        if (query.lastUser && typeof comment !== 'undefined' ) {
           var order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
-          if (query.comment !== order[2][0]) {
-            order[2][0] = query.comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
+          if (comment !== order[2][0]) {
+            order[2][0] = comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
             fs.writeFileSync(`orders/${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
           }
         }
@@ -27,25 +28,33 @@ const server = createServer((req, res) => {
         var order = fs.readFileSync(`orders/${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
         var lastItm = Number(query.itm) || 0
         let changed = false
-        var cmt = typeof query.comment !== 'undefined' ? query.comment : order[2][0]
+        comment = typeof comment !== 'undefined' ? comment : order[2][0]
         if (query.picker) {
+          console.info(`${query.picker} started picking order #${user}`)
           changed = true
           if (order[1][0]) {
+            console.warn(`DUPLICATE: this is pick number ${order[1][0].split(':').length + 1} for this order`)
             order[1][0] += ':' + query.picker.replace(',', '')
           } else {
             order[1][0] = query.picker.replace(',', '')
           }
         }
-        if (typeof query.comment !== 'undefined' && cmt !== order[2][0]) {
+        if (typeof comment !== 'undefined' && comment !== order[2][0]) {
           changed = true
-          order[2][0] = cmt && cmt.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
+          order[2][0] = comment && comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
         }
-        if (lastItm && query.qty !== order[2][lastItm]) {
+        const qty = parseInt(query.qty || 0)
+        if (lastItm && qty !== order[2][lastItm]) {
           changed = true
-          order[2][lastItm] = query.qty
+          process.env.DEBUG && console.debug(`picked ${qty} ${order[0][lastItm]} for order #${user}`)
+          if (parseInt(order[1][lastItm] || 0) !== qty) {
+            console.warn(`DEVIATION: picked ${qty} ${order[0][lastItm]} for order #${user} but they ordered ${parseInt(order[1][lastItm] || 0)}`)
+          }
+          order[2][lastItm] = qty
         }
         if (changed) {
           fs.writeFileSync(`orders/${user}.csv`, order.map(l => l.join(',')).join("\n"))
+          process.env.DEBUG && console.debug(`order #${user} was updated`)
         }
         if (order[1][0].includes(':')) {
           warn = 'THIS ORDER HAS BEEN PICKED<br>(at least partially)<br><small>Inputs default number is the qty already picked</small><br>'
@@ -61,6 +70,7 @@ const server = createServer((req, res) => {
         var next = order[1][0]
         const headers = '<tr><th width="30px">#</th><th>Item Name</th><th width="40px">ID</th><th width="30px">Got</th></tr>'
         if (itm === -1 || lastItm === order[0].length - 1) {
+          console.info(`${order[1][0]} finished picking order #${user}`)
           done = `<table>${headers}${done.join('')}</table>`
           filePath = './end-index.html'
         } else {
@@ -102,7 +112,7 @@ const server = createServer((req, res) => {
             .replace(/USER/g, user)
             .replace('DONE_LIST', done)
             .replace(/NEXT_LIST/g, next)
-            .replace('CMT', cmt)
+            .replace('CMT', comment)
             .replace('QTY', order[1][itm] || '0')
             .replace('FILLED', order[2][itm] !== '0' ? order[2][itm] : '')
             .replace(/ITM/g, itm)
