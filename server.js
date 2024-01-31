@@ -101,7 +101,7 @@ const server = createServer((req, res) => {
           content = content
             .replace(/USER/g, user)
             .replace('DONE_LIST', done)
-            .replace('NEXT_LIST', next)
+            .replace(/NEXT_LIST/g, next)
             .replace('CMT', cmt)
             .replace('QTY', order[1][itm] || '0')
             .replace('FILLED', order[2][itm] !== '0' ? order[2][itm] : '')

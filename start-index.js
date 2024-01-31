@@ -1,16 +1,33 @@
 function validateForm(event) {
-  const orders = JSON.parse(`ORDERS`)
-  const user = document.getElementById('user').value
-  const last = document.getElementById('last').value.toLocaleUpperCase()
+  var orders = JSON.parse('ORDERS')
+  var user = parseInt(document.getElementById('user').value.trim())
+  var last = document.getElementById('last').value.trim().toUpperCase()
+  var picker = document.getElementById('picker').value.trim()
+  document.getElementById('user').value = user
+  document.getElementById('last').value = last
+  document.getElementById('picker').value = picker
+  if (!user || !last || !picker) {
+    alert('Please enter a value for all the fields.');
+    event.preventDefault();
+    return false;
+  }
   if (orders[user] !== last) {
     event.preventDefault()
     if (orders[user]) {
-      alert(`Order #${user} does not match the name "${last}"
-      the correct last name is "${orders[user]}"`)
+      alert('Order #' + user + ' does not match the name "' + last + '"\n' + 'the correct last name is "' + orders[user] + '"')
     } else {
-      alert(`Order #${user} is not on our list in orders.json`)
+      alert('Order #' + user + ' is not on our list in orders.json')
     }
   }
 }
-let params = (new URL(document.location)).searchParams
-document.getElementById('picker').value = params.get('picker')
+
+function getParameterByName(name) {
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      results = regex.exec(window.location.href);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+document.getElementById('picker').value = getParameterByName('picker')
