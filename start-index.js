@@ -30,4 +30,5 @@ function getParameterByName(name) {
   return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-document.getElementById('picker').value = getParameterByName('picker')
+var picker = getParameterByName('picker').split(':')
+document.getElementById('picker').value = picker[picker.length - 1]
