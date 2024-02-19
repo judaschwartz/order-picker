@@ -3,6 +3,8 @@ const fs = require('fs')
 const { parse } = require('url')
 const { networkInterfaces } = require('os')
 
+const pickLine = [[],[]]
+const outOfLine = []
 const server = createServer((req, res) => {
   const { pathname, query } = parse(req.url, true)
   if (req.method === 'GET') {
@@ -12,11 +14,26 @@ const server = createServer((req, res) => {
     let comment = query.comment
     try {
       if (filePath === './' && !fs.existsSync(`orders/${user}.csv`)) {
-        if (query.lastUser && typeof comment !== 'undefined' ) {
-          var order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
-          if (comment !== order[2][0]) {
-            order[2][0] = comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
-            fs.writeFileSync(`orders/${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
+        if (query.lastUser) {
+          if (typeof comment !== 'undefined') {
+            var order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
+            if (comment !== order[2][0]) {
+              order[2][0] = comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
+              fs.writeFileSync(`orders/${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
+            }
+          }
+          const side = pickLine.findIndex(s => s.some(c => c[0] === query.lastUser))
+          if (side > -1) {
+            const completed = pickLine[side].findIndex(c => c[0] === query.lastUser)
+            fs.appendFileSync('./completed-orders.csv', `\n${[...pickLine[side][completed], new Date().toTimeString().slice(0, 8), 0].join(',')}`)
+            outOfLine.push(...pickLine[side].slice(0, completed))
+            pickLine[side] = pickLine[side].slice(completed + 1)
+          } else {
+            const completed = outOfLine.findIndex(c => c[0] === query.lastUser)
+            if (completed > -1) {
+              fs.appendFileSync('./completed-orders.csv', `\n${[...outOfLine[completed], new Date().toTimeString().slice(0, 8), 1].join(',')}`)
+              outOfLine.splice(completed, 1)
+            }
           }
         }
         if (user) {
@@ -33,11 +50,12 @@ const server = createServer((req, res) => {
           console.info(`${query.picker} started picking order #${user}`)
           changed = true
           if (order[1][0]) {
-            console.warn(`DUPLICATE: this is pick number ${order[1][0].split(':').length + 1} for this order`)
+            console.warn(`DUPLICATE: this is pick #${order[1][0].split(':').length + 1} for this order`)
             order[1][0] += ':' + query.picker.replace(',', '')
           } else {
             order[1][0] = query.picker.replace(',', '')
           }
+          pickLine[query.side].push([user, query.picker, query.side, new Date().toTimeString().slice(0, 8)])
         }
         if (typeof comment !== 'undefined' && comment !== order[2][0]) {
           changed = true
@@ -120,6 +138,10 @@ const server = createServer((req, res) => {
             .replace('NAME', order[0][itm])
         } else if (filePath === './start-index.js') {
           content = content.replace('ORDERS', fs.readFileSync('orders.json').toString())
+        } else if (filePath === './admin.html') {
+          content += `Right:<br>${pickLine[1].join('<br>')}<br><br>`
+          content += `Left:<br>${pickLine[0].join('<br>')}<br><br>`
+          content += `Out of Line:<br>${outOfLine.join('<br>')}`
         }
         res.end(content, 'utf-8')
       }

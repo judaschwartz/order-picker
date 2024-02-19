@@ -155,3 +155,13 @@ tr:nth-child(odd) {
   text-align: left;
   margin: 10px 0 5px 35px;
 }
+
+.sides {
+  display: flex;
+  padding: 20px 0;
+}
+
+.sides label {
+  display: flex;
+  padding: 0px 30px;
+}
