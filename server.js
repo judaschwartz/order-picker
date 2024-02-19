@@ -3,7 +3,7 @@ const fs = require('fs')
 const { parse } = require('url')
 const { networkInterfaces } = require('os')
 
-const pickLine = [[],[]]
+const pickLine = [[], []]
 const outOfLine = []
 const server = createServer((req, res) => {
   const { pathname, query } = parse(req.url, true)
@@ -12,11 +12,15 @@ const server = createServer((req, res) => {
     let filePath = '.' + pathname
     const user = query.user
     let comment = query.comment
+    let order
     try {
       if (filePath === './' && !fs.existsSync(`orders/${user}.csv`)) {
+        if (user) {
+          warn = `could not find a record for order #${user}`
+        }
         if (query.lastUser) {
           if (typeof comment !== 'undefined') {
-            var order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
+            order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
             if (comment !== order[2][0]) {
               order[2][0] = comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
               fs.writeFileSync(`orders/${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
@@ -36,14 +40,11 @@ const server = createServer((req, res) => {
             }
           }
         }
-        if (user) {
-          warn = `could not find a record for order #${user}`
-        }
         filePath = './start-index.html'
       } else if (filePath === './') {
         filePath = './index.html'
-        var order = fs.readFileSync(`orders/${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
-        var lastItm = Number(query.itm) || 0
+        order = fs.readFileSync(`orders/${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
+        const lastItm = Number(query.itm) || 0
         let changed = false
         comment = typeof comment !== 'undefined' ? comment : order[2][0]
         if (query.picker) {
