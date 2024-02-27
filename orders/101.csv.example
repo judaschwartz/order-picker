@@ -1,2 +1,17 @@
-Schwartz,plates,forks,spoons,bowls,cups,more,stuff,again,plates2,forks2,spoons2,bowls2,cups2,more2,stuff2
-,3,7,0,0,2,1,0,1,1,0,0,5,7,0,0
+name,order,picked
+Schwartz,,
+first item,3,
+forks,7,
+spoons,0,
+bowls,0,
+cups,2,
+more,1,
+stuff,0,
+again,1,
+plates two,1,
+forks 2,0,
+spoons 2,0,
+bowls 2,5,
+cups2,7,
+more 2,0,
+last item,0,

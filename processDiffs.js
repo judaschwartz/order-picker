@@ -7,16 +7,18 @@ orderIds.forEach(id => {
   const diff = [id]
   if (fs.existsSync(`orders/${id}.csv`)) {
     const order = fs.readFileSync(`orders/${id}.csv`).toString().split("\n").map(l => l.split(','))
-    if (order[2].length < 2) {
+    if (order.filter(i => i[2]).length < 3) {
       skipped++
-      diff.push(order[1][0], order[2][0], 'ORDER WAS NOT PICKED')
+      diff.push(order[1][2], order[1][1], 'ORDER WAS NOT PICKED')
     } else {
-      order[0].slice(1).forEach((name, i) => {
-        const ordered = Number(order[1][i + 1]) || 0
-        const picked = Number(order[2][i + 1]) || 0
+      diff.push(order[1][2], order[1][1])
+      order.slice(2).forEach((r, i) => {
+        const ordered = Number(r[1]) || 0
+        const picked = Number(r[2]) || 0
+        const name = r[0]
         if (ordered != picked) {
-          diff.push(order[1][0], order[2][0], `${ordered - picked} "${name}"`)
-          resultsByItm[name] = resultsByItm[name] ? [...resultsByItm[name], [`${ordered - picked} ${id}`]] : [[`${ordered - picked} ${id}`]]
+          diff.push(`${ordered - picked} ${name} (A-${i+2})`)
+          resultsByItm[name] = resultsByItm[name] ? [...resultsByItm[name], [`${ordered - picked} ${id}`]] : [[`A-${i+2}`, `${ordered - picked} ${id}`]]
         }
       })
     }
