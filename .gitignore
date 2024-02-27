@@ -1,6 +1,6 @@
 .history
 orders/*
-!orders/101.csv.example
+!orders/*.example
 orders.json
 .DS_Store
 resultsByItm.csv
