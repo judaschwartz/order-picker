@@ -139,6 +139,13 @@ tr:nth-child(odd) {
   font-weight: bold;
 }
 
+.warn b {
+  display: block;
+  background: #fffd70;
+  padding: 7px 0 5px;
+  margin: 0 0 15px;
+}
+
 .warn small {
   color: rgb(25, 25, 25);
   font-weight: normal;

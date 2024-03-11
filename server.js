@@ -88,10 +88,11 @@ const server = createServer((req, res) => {
         }).filter(Boolean)
         var next = order[1][2]
         const headers = '<tr><th width="30px">#</th><th>Item Name</th><th width="40px">ID</th><th width="30px">Got</th></tr>'
-        if (itm === -1 || lastItm === order.length - 1) {
-          itm = 1
+        if (itm === -1 || lastItm === order.length - 2) {
+          itm = order.length - 1
           console.info(`${order[1][2]} finished picking order #${user}`)
           warn = done.length ? warn : 'This order has no items to pick'
+          warn += order[itm][1] === 'Yes' ? '<br><b>PICKUP PRODUCE PACKAGE</b>' : ''
           done = `<table>${headers}${done.join('')}</table>`
           filePath = './end-index.html'
         } else {
