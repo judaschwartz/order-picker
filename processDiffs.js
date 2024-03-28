@@ -17,8 +17,8 @@ orderIds.forEach(id => {
         const picked = Number(r[2]) || 0
         const name = r[0]
         if (ordered != picked) {
-          diff.push(`${ordered - picked} ${name} (A-${i+2})`)
-          resultsByItm[name] = resultsByItm[name] ? [...resultsByItm[name], [`${ordered - picked} ${id}`]] : [[`A-${i+2}`, `${ordered - picked} ${id}`]]
+          diff.push(`${ordered - picked} ${name} (${r[3]})`)
+          resultsByItm[name] = resultsByItm[name] ? [...resultsByItm[name], [`${ordered - picked} ${id}`]] : [[`${r[3]}`, `${ordered - picked} ${id}`]]
         }
       })
     }

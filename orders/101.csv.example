@@ -1,17 +1,18 @@
-name,order,picked
-Schwartz,,
-first item,3,
-forks,7,
-spoons,0,
-bowls,0,
-cups,2,
-more,1,
-stuff,0,
-again,1,
-plates two,1,
-forks 2,0,
-spoons 2,0,
-bowls 2,5,
-cups2,7,
-more 2,0,
-last item,0,
+name,ordered,picked,slot,ss
+Name,,,27,
+more 2,0,,A1,
+stuff,0,,A2,
+cups,2,,A12,Side slot
+bowls,0,,A3,
+forks 2,0,,A13,Side slot
+spoons 2,0,,A4,
+bowls 2,5,,A14,Side slot
+cups2,7,,A5,
+first item didf,3,,A6,
+spoons,0,,A15,Side slot
+again,1,,A7,
+last item,0,,A8,
+plates two,1,,A9,
+forks,7,,A10,
+more,1,,A11,
+Produce,Yes,,,

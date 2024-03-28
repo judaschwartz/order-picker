@@ -1,0 +1,17 @@
+﻿pick seq,slot,name,ss
+9,A6,first item didf,
+14,A10,forks,
+10,A15,spoons,Side slot
+4,A3,bowls,
+3,A12,cups,Side slot
+15,A11,more,
+2,A2,stuff,
+11,A7,again,
+13,A9,plates two,
+5,A13,forks 2,Side slot
+6,A4,spoons 2,
+7,A14,bowls 2,Side slot
+8,A5,cups2,
+1,A1,more 2,
+12,A8,last item,
+16,,Produce,

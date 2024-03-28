@@ -12,7 +12,7 @@ const server = createServer((req, res) => {
     let filePath = '.' + pathname
     const user = query.user
     let comment = query.comment
-    let prdName, prdQty, prdPicked
+    let prdName, prdQty, prdPicked, slot
     try {
       if (filePath === './' && !fs.existsSync(`orders/${user}.csv`)) {
         if (user) {
@@ -44,15 +44,18 @@ const server = createServer((req, res) => {
       } else if (filePath === './') {
         filePath = './index.html'
         const order = fs.readFileSync(`orders/${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
-        const lastItm = Number(query.itm) || 1
+        let lastItm = Number(query.itm) || 1
         let changed = false
         comment = typeof comment !== 'undefined' ? comment : order[1][1]
         if (query.picker) {
           console.info(`${query.picker} started picking order #${user}`)
+          warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
           changed = true
           if (order[1][2]) {
-            console.warn(`DUPLICATE: this is pick #${order[1][2].split(':').length + 1} for this order`)
             order[1][2] += ':' + query.picker.replace(/,/g, '&')
+            const leftOff = order.slice(2).findIndex(r => Number(r[1]) && Number(r[1]) !== Number(r[2]))
+            lastItm = leftOff > 1 ? leftOff + 1 : 1
+            console.warn(`DUPLICATE: This is pick #${order[1][2].split(':').length + 1} for this order starting from after item ${order[lastItm][0]}`)
           } else {
             order[1][2] = query.picker.replace(/,/g, '&')
           }
@@ -63,7 +66,7 @@ const server = createServer((req, res) => {
           order[1][1] = comment && comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
         }
         const qty = parseInt(query.qty || 0)
-        if (lastItm > 1 && qty !== order[lastItm][2]) {
+        if (query.qty !== undefined && lastItm > 1 && qty !== order[lastItm][2]) {
           changed = true
           process.env.DEBUG && console.debug(`picked ${qty} ${order[lastItm][0]} for order #${user}`)
           if (parseInt(order[lastItm][1] || 0) !== qty) {
@@ -76,7 +79,7 @@ const server = createServer((req, res) => {
           process.env.DEBUG && console.debug(`order #${user} was updated`)
         }
         if (order[1][2].includes(':')) {
-          warn = 'THIS ORDER HAS BEEN PICKED<br>(at least partially)<br><small>Inputs default number is the qty already picked</small><br>'
+          warn += 'THIS ORDER HAS BEEN PICKED<br>(at least partially)<br><small>Inputs default number is the qty already picked</small><br>'
         }
         var userName = order[1][0]
         var itm = query.showAll ? 0 : order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
@@ -84,10 +87,10 @@ const server = createServer((req, res) => {
           const ordered = Number(r[1]) || 0
           const got = Number(r[2]) || 0
           const klass = ordered !== got ? ' class="yellow"' : ''
-          return ordered || got ? `<tr${klass}><td>${ordered}</td><td>${r[0]}</td><td>A-${i + 2}</td><td>${got}</td></tr>` : ''
+          return ordered || got ? `<tr${klass} onclick="window.location='/?user=${user}&itm=${i + 1}';"><td>${r[3]}</td><td>${r[0]}</td><td>${ordered}</td><td>${got}</td></tr>` : ''
         }).filter(Boolean)
         var next = order[1][2]
-        const headers = '<tr><th width="30px">#</th><th>Item Name</th><th width="40px">ID</th><th width="30px">Got</th></tr>'
+        const headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
         if (itm === -1 || lastItm === order.length - 2) {
           itm = order.length - 1
           console.info(`${order[1][2]} finished picking order #${user}`)
@@ -100,11 +103,12 @@ const server = createServer((req, res) => {
           itm = itm + lastItm + 1
           next = order.slice(itm + 1).map((r, i) => {
             const pick = (Number(r[1]) || 0) - (Number(r[2]) || 0)
-            return Number(r[1]) ? `<tr><td width="40px">A-${i + itm + 1}</td><td>${r[0]}</td><td width="30px">${pick}</td></tr>` : ''
+            return Number(r[1]) ? `<tr><td width="40px">${r[3]}</td><td>${r[0]}</td><td width="30px">${pick}</td></tr>` : ''
           }).filter(Boolean)
           next = `<table>${next.join('')}</table>`
         }
         prdName = order[itm][0]
+        slot = order[itm][4] ? order[itm][3] + '<small>(Side slot)</small>' : order[itm][3]
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
       }
@@ -140,6 +144,7 @@ const server = createServer((req, res) => {
             .replace('QTY', prdQty)
             .replace('FILLED', prdPicked)
             .replace(/ITM/g, itm)
+            .replace(/SLOT/g, slot)
             .replace('ULAST', userName)
             .replace('NAME', prdName)
         } else if (filePath === './start-index.js') {

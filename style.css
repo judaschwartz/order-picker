@@ -14,17 +14,27 @@ h1 {
   margin: 0 0 20px;
 }
 
-form b {
-  font-size: 24px;
-  display: block;
-}
-
 p {
   margin: 5px 0;
 }
 
+.prod-name {
+  font-size: 38px;
+  margin: 20px 0;
+}
+
+.prod-name small {
+  font-size: 16px;
+  display: block;
+}
+
+.prod-name > b {
+  font-size: 50px;
+  display: block;
+}
+
 form label b {
-  font-size: 44px;
+  font-size: 52px;
   background: #fffc6a;
   padding: 5px 0;
   border-radius: 15px;
@@ -171,4 +181,8 @@ tr:nth-child(odd) {
 .sides label {
   display: flex;
   padding: 0px 30px;
+}
+
+.picked.other-itms tr {
+  cursor: pointer;
 }
