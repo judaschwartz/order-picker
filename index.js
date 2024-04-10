@@ -5,7 +5,7 @@ function validateForm(event) {
   document.getElementById('comment').value = document.getElementById('comment').value.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
   var excepted = parseInt(document.getElementById('excepted').innerText || 0)
   if (qty !== excepted) {
-    if (!confirm('Received ' + qty + ' but they ordered ' + excepted + '.\nDo you still want to continue to the next item?')) {
+    if (!confirm('Received ' + qty + ' but they ordered ' + excepted + '.\nPress OK if you still want to continue to the next item.')) {
       event.preventDefault()
     }
   }
