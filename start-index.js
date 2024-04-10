@@ -20,11 +20,10 @@ function validateForm(event) {
 }
 
 function getParameterByName(name) {
-  name = name.replace(/[\[\]]/g, "\\$&")
   var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)")
   var results = regex.exec(window.location.href)
   if (!results || !results[2]) return ''
-  return decodeURIComponent(results[2].replace(/\+/g, " "))
+  return decodeURIComponent(results[2].trim())
 }
 
 var picker = getParameterByName('picker').split(':')

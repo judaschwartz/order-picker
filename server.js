@@ -5,6 +5,11 @@ const { networkInterfaces } = require('os')
 
 const pickLine = [[], []]
 const outOfLine = []
+const pickDuration = (start, end) => {
+  start = start.split(':').map(Number)
+  end = end.split(':').map(Number)
+  return end[1] - start[1] + ((end[0] - start[0]) * 60)
+}
 const server = createServer((req, res) => {
   const { pathname, query } = parse(req.url, true)
   if (req.method === 'GET') {
@@ -27,15 +32,24 @@ const server = createServer((req, res) => {
             }
           }
           const side = pickLine.findIndex(s => s.some(c => c[0] === query.lastUser))
+          const endTime = new Date().toTimeString().slice(0, 8)
           if (side > -1) {
             const completed = pickLine[side].findIndex(c => c[0] === query.lastUser)
-            fs.appendFileSync('./completed-orders.csv', `\n${[...pickLine[side][completed], new Date().toTimeString().slice(0, 8), 0].join(',')}`)
+            fs.appendFileSync('./completed-orders.csv', `\n${[
+              ...pickLine[side][completed],
+              endTime,
+              pickDuration(pickLine[side][completed][3], endTime)
+            ].join(',')}`)
             outOfLine.push(...pickLine[side].slice(0, completed))
             pickLine[side] = pickLine[side].slice(completed + 1)
           } else {
             const completed = outOfLine.findIndex(c => c[0] === query.lastUser)
             if (completed > -1) {
-              fs.appendFileSync('./completed-orders.csv', `\n${[...outOfLine[completed], new Date().toTimeString().slice(0, 8), 1].join(',')}`)
+              fs.appendFileSync('./completed-orders.csv', `\n${[
+                ...outOfLine[completed],
+                endTime,
+                `${pickDuration(outOfLine[completed][3], endTime)} (out of line)`
+              ].join(',')}`)
               outOfLine.splice(completed, 1)
             }
           }
