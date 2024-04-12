@@ -1,4 +1,61 @@
+<input type="checkbox" onclick="toggleRefresh()" checked>Auto Refresh Page
+<style>
+  html, body{
+    font-family: Arial, sans-serif;
+    margin:    0 auto;
+    max-width: 650px;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  td {
+    padding: 8px;
+    border: 1px solid #ccc;
+  }
+
+  tr {
+    background-color: #fff;
+  }
+
+  tr:nth-child(odd) {
+    background-color: #f1f1f1;
+  }
+
+  tr:first-child {
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
 <script>
-  console.log('Refreshed at', new Date().toTimeString().slice(0, 8))
-  setInterval(() => {window.location.reload()}, (30 * 1000))
+  function toggleRefresh() {
+    if (!document.querySelector('input').checked) {
+      console.log('Refresh stopped')
+      clearInterval(autoRefresh)
+    } else {
+      window.location.reload()
+    }
+  }
+  var allTables = ['right', 'left', 'out', 'orders']
+  window.onload = function () {
+    console.log('Refreshed at', new Date().toTimeString().slice(0, 8))
+    document.querySelectorAll('tr:first-child').forEach((tbl, ind) => {
+      tbl.querySelectorAll('td').forEach(element => {
+        element.onclick = function() {
+          console.log('Element clicked!', element.innerText.trim())
+          let url = new URL(window.location.href)
+          url.searchParams.set(allTables[ind], element.innerText.trim())
+          window.location.href = url.href
+        }
+      })
+    })
+  }
+
+  var autoRefresh = setInterval(() => {window.location.reload()}, (60 * 1000))
 </script>

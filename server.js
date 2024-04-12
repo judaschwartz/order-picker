@@ -10,6 +10,21 @@ const pickDuration = (start, end) => {
   end = end.split(':').map(Number)
   return end[1] - start[1] + ((end[0] - start[0]) * 60)
 }
+
+const makeTable = (headers, data, name, col) => {
+  console.log('col:', col, headers)
+  col = headers.findIndex(h => h.trim() === (col || 'start'))
+  console.log('col:', col)
+  data = [headers, ...data.sort((a, b) => {
+    if (!Number(a[col].split(' ')[0])) {
+      return a[col].toLowerCase() > b[col].toLowerCase() ? 1 : -1
+    } else {
+      return Number(a[col].split(' ')[0]) - Number(b[col].split(' ')[0])
+    }
+  })]
+  return `<h2>${name}</h2><table><tr><td>${data.map(l => l.join('</td><td>')).join("</td></tr><tr><td>")}</td></tr></table>`
+}
+
 const server = createServer((req, res) => {
   const { pathname, query } = parse(req.url, true)
   if (req.method === 'GET') {
@@ -168,9 +183,11 @@ const server = createServer((req, res) => {
         } else if (filePath === './start-index.js') {
           content = content.replace('ORDERS', fs.readFileSync('orders.json').toString())
         } else if (filePath === './admin.html') {
-          content += `Right:<br>${pickLine[1].join('<br>')}<br><br>`
-          content += `Left:<br>${pickLine[0].join('<br>')}<br><br>`
-          content += `Out of Line:<br>${outOfLine.join('<br>')}`
+          content += makeTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
+          content += makeTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
+          content += makeTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
+          const orders = fs.readFileSync('completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
+          content += makeTable(orders[0], orders.slice(1), 'Completed Orders:', query.orders)
         }
         res.end(content, 'utf-8')
       }
