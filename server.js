@@ -150,17 +150,21 @@ const server = createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': contentType })
         content = content.toString().replace('WARN', warn)
         if (filePath === './index.html' || filePath === './end-index.html') {
-          content = content
-            .replace(/USER/g, user)
-            .replace('DONE_LIST', done)
-            .replace(/NEXT_LIST/g, next)
-            .replace('CMT', comment)
-            .replace('QTY', prdQty)
-            .replace('FILLED', prdPicked)
-            .replace(/ITM/g, itm)
-            .replace(/SLOT/g, slot)
-            .replace('ULAST', userName)
-            .replace('NAME', prdName)
+          content = content.replace(/USER|DONE_LIST|NEXT_LIST|CMT|QTY|FILLED|ITM|SLOT|ULAST|NAME/g, (matched) => {
+            switch(matched){
+              case 'USER': return user
+              case 'DONE_LIST': return done
+              case 'NEXT_LIST': return next
+              case 'CMT': return comment
+              case 'QTY': return prdQty
+              case 'FILLED': return prdPicked
+              case 'ITM': return itm
+              case 'SLOT': return slot
+              case 'ULAST': return userName
+              case 'NAME': return prdName
+              default: return matched
+            }
+          })
         } else if (filePath === './start-index.js') {
           content = content.replace('ORDERS', fs.readFileSync('orders.json').toString())
         } else if (filePath === './admin.html') {

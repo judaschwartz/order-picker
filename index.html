@@ -17,9 +17,9 @@
       <input type="text" id="user" name="user" hidden value="USER">
       <input type="text" id="itm" name="itm" hidden value="ITM">
       <div class="qty-box">
-        <button type="button" onclick="decrement()">-</button>
+        <button type="button" onclick="decrement()" ondblclick="">-</button>
         <input type="number" id="qty" name="qty" inputmode="numeric" min="0"  value="FILLED" autofocus>
-        <button type="button" onclick="increment()">+</button>
+        <button type="button" onclick="increment()" ondblclick="">+</button>
       </div>
       <button type="submit">Next</button>
       <label for="comment">Order Comments</label>
