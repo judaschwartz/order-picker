@@ -13,8 +13,8 @@ function validateForm(event) {
 
 document.addEventListener('DOMContentLoaded', function () {
   var URL = location.href.split("&")
-  if (URL[URL.length - 1].split('=')[0] === 'picker') {
-    window.history.replaceState(null, '', URL.slice(0, -1).join('&'))
+  if (URL[URL.length - 2].split('=')[0] === 'picker') {
+    window.history.replaceState(null, '', URL.slice(0, -2).join('&'))
   }
   if (URL[URL.length - 1].split('=')[0] === 'showAll') {
     document.getElementById('showAll').checked = true

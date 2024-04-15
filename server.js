@@ -12,9 +12,7 @@ const pickDuration = (start, end) => {
 }
 
 const makeTable = (headers, data, name, col) => {
-  console.log('col:', col, headers)
   col = headers.findIndex(h => h.trim() === (col || 'start'))
-  console.log('col:', col)
   data = [headers, ...data.sort((a, b) => {
     if (!Number(a[col].split(' ')[0])) {
       return a[col].toLowerCase() > b[col].toLowerCase() ? 1 : -1
@@ -124,7 +122,7 @@ const server = createServer((req, res) => {
           itm = order.length - 1
           console.info(`${order[1][2]} finished picking order #${user}`)
           warn = done.length ? warn : 'This order has no items to pick'
-          warn += order[itm][1] === 'Yes' ? '<br><b>PICKUP PRODUCE PACKAGE</b>' : ''
+          warn += order[order.length - 1][1] === 'Yes' ? '<br><b>PICKUP PRODUCE PACKAGE</b>' : ''
           done = `<table>${headers}${done.join('')}</table>`
           filePath = './end-index.html'
         } else {
@@ -137,7 +135,7 @@ const server = createServer((req, res) => {
           next = `<table>${next.join('')}</table>`
         }
         prdName = order[itm][0]
-        slot = order[itm][4] ? order[itm][3] + '<small>(Side slot)</small>' : order[itm][3]
+        slot = `${order[itm][4] ? 'side' : ''}"># ${order[itm][3]}`
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
       }
@@ -187,7 +185,7 @@ const server = createServer((req, res) => {
           content += makeTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
           content += makeTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
           const orders = fs.readFileSync('completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
-          content += makeTable(orders[0], orders.slice(1), 'Completed Orders:', query.orders)
+          content += makeTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of 680`, query.orders)
         }
         res.end(content, 'utf-8')
       }

@@ -27,6 +27,6 @@ function getParameterByName(name) {
 }
 
 var picker = getParameterByName('picker').split(':')
-if (picker.length) {
-  document.getElementById('picker').value = picker[picker.length - 1]
-}
+// if (picker.length) {
+//   document.getElementById('picker').value = picker[picker.length - 1]
+// }

@@ -15,4 +15,5 @@ orders.slice(1).forEach(l => {
     .map(l => l.slice(1).join(','))
   fs.writeFileSync(`orders/${l[0]}.csv`, ['name,ordered,picked,slot,ss', `${l[1]},,,${ttl},`, ...order].join("\n"))
 })
+console.log(`${orders.length - 1} Orders Created`)
 fs.writeFileSync('orders.json', JSON.stringify(jsonFile))
