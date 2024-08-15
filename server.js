@@ -96,7 +96,7 @@ const server = createServer((req, res) => {
         if (query.qty !== undefined && lastItm > 1 && qty !== order[lastItm][2]) {
           changed = true
           process.env.DEBUG && console.debug(`picked ${qty} ${order[lastItm][0]} for order #${user}`)
-          if (parseInt(order[lastItm][1] || 0) !== qty) {
+          if (parseInt(order[lastItm][1] || 0) !== qty && !query.api) {
             console.warn(`DEVIATION: picked ${qty} ${order[lastItm][0]} for order #${user} but they ordered ${parseInt(order[lastItm][1] || 0)}`)
           }
           order[lastItm][2] = qty
@@ -118,7 +118,9 @@ const server = createServer((req, res) => {
         }).filter(Boolean)
         var next = order[1][2]
         let headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
-        if (itm === -1 || lastItm === order.length - 2) {
+        if (query.api) {
+          filePath = './api.html'
+        } else if (itm === -1 || lastItm === order.length - 2) {
           itm = order.length - 1
           console.info(`${order[1][2]} finished picking order #${user}`)
           warn = done.length ? warn : 'This order has no items to pick'
