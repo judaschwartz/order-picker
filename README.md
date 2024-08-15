@@ -13,4 +13,4 @@ After creating the necessary files, execute the command `node server.js` to star
 ### Admin console
 To see what is being currently picked go to `/admin.html` a list of completed picks can be found at `completed-orders.csv`
 ### Obtaining Results:
-To generate CSV files summarizing discrepancies between picked and actual orders, execute the command node processDiffs.js. This will create two files: `resultsByItm.csv` and `resultsByUser.csv`
+To generate CSV files summarizing discrepancies between picked and actual orders, execute the command `node processDiffs.js` This will create two files: `resultsByItm.csv` and `resultsByUser.csv`

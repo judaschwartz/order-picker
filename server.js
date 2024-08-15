@@ -200,6 +200,9 @@ const server = createServer((req, res) => {
 const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat().find(({ family, internal, address }) => family === "IPv4" && !internal && address.startsWith('192.168.')).address
 const PORT = 3000 // Choose a port (e.g., 3000)
 
+if (!fs.existsSync('completed-orders.csv')) {
+  fs.writeFileSync('completed-orders.csv', 'orderId,picker,side,start,end,minutes')
+}
 server.listen(PORT, LOCAL_IP, () => {
   console.log(`Server is running.\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)
 })
