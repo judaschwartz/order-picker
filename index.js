@@ -62,8 +62,15 @@ function pickAhead(tr, user) {
     tr.insertAdjacentElement('afterend', td)
   }
 }
-
+let change
 function sendChange(elem, user, tr) {
-  fetch(`/?user=${user}&itm=${tr.getAttribute('data-itm')}&qty=${elem.value}`)
-  tr.querySelector('td:last-child').innerText = tr.getAttribute('data-n') - elem.value
+  clearTimeout(change)
+  change = setTimeout(() => {
+    fetch(`/?user=${user}&itm=${tr.getAttribute('data-itm')}&qty=${elem.value}`).then(() => {
+      tr.querySelector('td:last-child').innerText = Number(tr.getAttribute('data-n')) - elem.value
+    }).catch((e) => {
+      console.error('error sending change', e)
+      elem.value = Number(tr.getAttribute('data-n')) - Number(tr.querySelector('td:last-child').innerText)
+    })
+  }, 500)
 }
