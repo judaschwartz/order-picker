@@ -117,7 +117,7 @@ const server = createServer((req, res) => {
           return ordered || got ? `<tr${klass} onclick="window.location='/?user=${user}&itm=${i + 1}';"><td>${r[3]}</td><td>${r[0]}</td><td>${ordered}</td><td>${got}</td></tr>` : ''
         }).filter(Boolean)
         var next = order[1][2]
-        const headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
+        let headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
         if (itm === -1 || lastItm === order.length - 2) {
           itm = order.length - 1
           console.info(`${order[1][2]} finished picking order #${user}`)
@@ -130,9 +130,10 @@ const server = createServer((req, res) => {
           itm = itm + lastItm + 1
           next = order.slice(itm + 1).map((r, i) => {
             const pick = (Number(r[1]) || 0) - (Number(r[2]) || 0)
-            return Number(r[1]) ? `<tr><td width="40px">${r[3]}</td><td>${r[0]}</td><td width="30px">${pick}</td></tr>` : ''
+            return Number(r[1]) ? `<tr data-itm="${i+itm+1}" data-n="${r[1]}"><td>${r[3]}</td><td>${r[0]}</td><td>${pick}</td></tr>` : ''
           }).filter(Boolean)
-          next = `<table>${next.join('')}</table>`
+          headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">Needed</th></tr>'
+          next = `<table>${headers}${next.join('')}</table>`
         }
         prdName = order[itm][0]
         slot = `${order[itm][4] ? 'side' : ''}"># ${order[itm][3]}`

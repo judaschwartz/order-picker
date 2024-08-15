@@ -72,12 +72,11 @@ table {
 }
 
 table, th, td {
-  border: 1px solid #ddd;
+  border: 1px solid #999;
 }
 
 th, td {
   padding: 5px;
-  text-align: left;
 }
 
 .yellow {
@@ -139,6 +138,10 @@ a:hover {
   text-decoration: underline;
 }
 
+.next tr {
+  height: 60px;
+}
+
 tr:nth-child(even) {
   background-color: #f9f9f9;
 }
@@ -148,9 +151,13 @@ tr:nth-child(odd) {
   background-color: #e6e6e6;
 }
 
-.qty-box {
+div.qty-box, table .qty-box div {
   display: flex;
   padding: 5px 0 20px;
+}
+
+td.qty-box {
+  border-top: 2px solid #fff;
 }
 
 .qty-box input {
