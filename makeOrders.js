@@ -1,6 +1,8 @@
 const fs = require('fs')
-const orders = fs.readFileSync('orders/allOrders.csv').toString().split("\n")
+const orders = fs.readFileSync('orders/allOrders.csv').toString().split("\n").filter(Boolean)
 const names = fs.readFileSync('orders/nameSlot.csv').toString().split("\n").slice(1).map(l => l.split(','))
+orders.push(['999', 'test2', ...names.map((n, i) => i)].join(','))
+orders.push(['998', 'test1', ...names.map((n, i) => (!i || i === names.length -1)*1)].join(','))
 const jsonFile = {}
 orders.slice(1).forEach(l => {
   l = l.trim().split(',')
