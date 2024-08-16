@@ -60,6 +60,7 @@ function pickAhead(tr, user) {
     td.appendChild(box)
     td.className = 'qty-box'
     tr.insertAdjacentElement('afterend', td)
+    tr.insertAdjacentHTML('afterend', '<tr class="qty-box" style="height: 0;"></tr>')
   }
 }
 let change

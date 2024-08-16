@@ -142,22 +142,26 @@ a:hover {
   height: 60px;
 }
 
-tr:nth-child(even) {
+tbody > *:nth-child(even) {
   background-color: #f9f9f9;
 }
 
 /* Apply a different shade of grey to odd rows */
-tr:nth-child(odd) {
+tbody > *:nth-child(odd) {
   background-color: #e6e6e6;
+}
+
+td.qty-box:nth-child(odd) {
+  border-top: 2px solid #e6e6e6;
+}
+
+td.qty-box:nth-child(even) {
+  border-top: 2px solid #f9f9f9;
 }
 
 div.qty-box, table .qty-box div {
   display: flex;
   padding: 5px 0 20px;
-}
-
-td.qty-box {
-  border-top: 2px solid #fff;
 }
 
 .qty-box input {
