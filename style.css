@@ -79,7 +79,7 @@ th, td {
   padding: 5px;
 }
 
-.yellow {
+.discrepancy {
   color: #fa6c39;
   font-weight: bold;
 }
@@ -115,7 +115,7 @@ input[type="number"] {
 }
 
 button {
-  background-color: #4caf50;
+  background-color: #0059a6;
   color: #fff;
   padding: 30px 20px;
   border: none;
@@ -127,15 +127,14 @@ button {
   font-size: 36px;
 }
 
-a {
-  color: #164cff;
+.back {
   text-decoration: none;
   display: inline-block;
   margin-top: 20px;
-}
-
-a:hover {
-  text-decoration: underline;
+  padding: 20px 40px;
+  background: #c36d6d;
+  border-radius: 5px;
+  color: #fff;
 }
 
 .next tr {
@@ -205,12 +204,18 @@ div.qty-box, table .qty-box div {
 
 .sides {
   display: flex;
-  padding: 20px 0;
+  padding: 20px 0 0;
+  line-height: 35px;
 }
 
 .sides label {
   display: flex;
-  padding: 0px 30px;
+  padding: 5px 30px;
+}
+
+.sides input {
+  height: 25px;
+  width: 25px;
 }
 
 .picked.other-itms tr {

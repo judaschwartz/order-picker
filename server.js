@@ -77,6 +77,7 @@ const server = createServer((req, res) => {
         if (query.picker) {
           console.info(`${query.picker} started picking order #${user}`)
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
+          warn += order[1][3] > 80 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
           changed = true
           if (order[1][2]) {
             order[1][2] += ':' + query.picker.replace(/,/g, '&')
@@ -113,7 +114,7 @@ const server = createServer((req, res) => {
         var done = order.slice(2, lastItm +1).map((r, i) => {
           const ordered = Number(r[1]) || 0
           const got = Number(r[2]) || 0
-          const klass = ordered !== got ? ' class="yellow"' : ''
+          const klass = ordered !== got ? ' class="discrepancy"' : ''
           return ordered || got ? `<tr${klass} onclick="window.location='/?user=${user}&itm=${i + 1}';"><td>${r[3]}</td><td>${r[0]}</td><td>${ordered}</td><td>${got}</td></tr>` : ''
         }).filter(Boolean)
         var next = order[1][2]

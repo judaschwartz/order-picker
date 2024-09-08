@@ -4,10 +4,13 @@ function validateForm(event) {
 
   document.getElementById('comment').value = document.getElementById('comment').value.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
   var excepted = parseInt(document.getElementById('excepted').innerText || 0)
-  if (qty !== excepted) {
+  if (qty < excepted) {
     if (!confirm('Received ' + qty + ' but they ordered ' + excepted + '.\nPress OK if you still want to continue to the next item.')) {
       event.preventDefault()
     }
+  } else if (qty > excepted) {
+    alert('Received ' + qty + ' but they ordered ' + excepted + '.\nYou must remove extra items.')
+    event.preventDefault()
   }
 }
 
@@ -19,8 +22,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (URL.some(f => f.includes('showAll'))) {
     document.getElementById('showAll').checked = true
   }
-  const user = URL.find(u => u.includes('user'))?.split('=')?.[1]
-  document.querySelectorAll('.next tr').forEach(tr => {
+  const user = URL.find(u => u.includes('user'))?.split('=')?.[1];
+  [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => { // slice how many ahead we allow
     tr.onclick = () => pickAhead(tr, user)
   })
 })
@@ -38,6 +41,7 @@ function decrement(input = document.getElementById('qty')) {
 
 function pickAhead(tr, user) {
   if (tr.nextElementSibling?.classList?.contains('qty-box')) {
+    tr.nextElementSibling.remove()
     tr.nextElementSibling.remove()
   } else {
     document.querySelectorAll(".next .qty-box").forEach(e => e.remove())
