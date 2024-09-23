@@ -5,13 +5,16 @@ const { networkInterfaces } = require('os')
 
 const pickLine = [[], []]
 const outOfLine = []
+const rawOrders = fs.readFileSync('orders.json').toString()
+const totalOrders = Object.keys(JSON.parse(rawOrders)).length
+const sides = ['right', 'left', 'no-car']
 const pickDuration = (start, end) => {
   start = start.split(':').map(Number)
   end = end.split(':').map(Number)
   return end[1] - start[1] + ((end[0] - start[0]) * 60)
 }
 
-const makeTable = (headers, data, name, col) => {
+const adminTable = (headers, data, name, col) => {
   col = headers.findIndex(h => h.trim() === (col || 'start'))
   data = [headers, ...data.sort((a, b) => {
     if (!Number(a[col].split(' ')[0])) {
@@ -75,19 +78,21 @@ const server = createServer((req, res) => {
         let changed = false
         comment = typeof comment !== 'undefined' ? comment : order[1][1]
         if (query.picker) {
-          console.info(`${query.picker} started picking order #${user}`)
+          const picker = [query.picker, query.assistant, query.assistant2].join('|').replace(/,/g, ' ')
+          console.info(`${picker} started picking order #${user}`)
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
           warn += order[1][3] > 80 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
           changed = true
           if (order[1][2]) {
-            order[1][2] += ':' + query.picker.replace(/,/g, '&')
+            order[1][2] += `:${picker}`
             const leftOff = order.slice(2).findIndex(r => Number(r[1]) && Number(r[1]) !== Number(r[2]))
             lastItm = leftOff > 1 ? leftOff + 1 : 1
             console.warn(`DUPLICATE: This is pick #${order[1][2].split(':').length + 1} for this order starting from after item ${order[lastItm][0]}`)
           } else {
-            order[1][2] = query.picker.replace(/,/g, '&')
+            order[1][2] = picker
           }
-          pickLine[query.side].push([user, query.picker, Number(query.side) ? 'right' : 'left', new Date().toTimeString().slice(0, 8)])
+          const lane = query.side == 2 ? outOfLine : pickLine[query.side]
+          lane.push([user, picker, sides[query.side], new Date().toTimeString().slice(0, 8)])
         }
         if (typeof comment !== 'undefined' && comment !== order[1][1]) {
           changed = true
@@ -107,7 +112,7 @@ const server = createServer((req, res) => {
           process.env.DEBUG && console.debug(`order #${user} was updated`)
         }
         if (order[1][2].includes(':')) {
-          warn += 'THIS ORDER HAS BEEN PICKED<br>(at least partially)<br><small>Inputs default number is the qty already picked</small><br>'
+          warn += 'THIS ORDER HAS BEEN PICKED<br><small>(at least partially)<br>the Input boxes number is the qty already picked</small><br>'
         }
         var userName = order[1][0]
         var itm = query.showAll ? 0 : order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
@@ -144,7 +149,7 @@ const server = createServer((req, res) => {
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
       }
     } catch (error) {
-      warn = error
+      warn = error.stack.replaceAll('\n', '<br>')
       filePath = './error.html'
     }
     const extname = filePath.split('.').slice(-1)[0].toLowerCase()
@@ -183,13 +188,13 @@ const server = createServer((req, res) => {
             }
           })
         } else if (filePath === './start-index.js') {
-          content = content.replace('ORDERS', fs.readFileSync('orders.json').toString())
+          content = content.replace('ORDERS', rawOrders)
         } else if (filePath === './admin.html') {
-          content += makeTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
-          content += makeTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
-          content += makeTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
+          content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
+          content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
+          content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
           const orders = fs.readFileSync('completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
-          content += makeTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of 680`, query.orders)
+          content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders)
         }
         res.end(content, 'utf-8')
       }
@@ -205,6 +210,6 @@ if (!fs.existsSync('completed-orders.csv')) {
   fs.writeFileSync('completed-orders.csv', 'orderId,picker,side,start,end,minutes')
 }
 server.listen(PORT, LOCAL_IP, () => {
-  console.log(`Server is running.\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)
+  console.log(`Server is running. There are ${totalOrders} orders to pick\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)
 })
 

@@ -17,7 +17,7 @@ function validateForm(event) {
 document.addEventListener('DOMContentLoaded', function () {
   var URL = location.href.split("&")
   if (URL.some(f => f.includes('picker'))) {
-    window.history.replaceState(null, '', URL.slice(0, -2).join('&'))
+    window.history.replaceState(null, '', URL.slice(0, -4).join('&'))
   }
   if (URL.some(f => f.includes('showAll'))) {
     document.getElementById('showAll').checked = true

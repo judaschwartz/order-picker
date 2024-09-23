@@ -19,14 +19,23 @@ function validateForm(event) {
   }
 }
 
-function getParameterByName(name) {
+function getParameterByName(paramString, name) {
   var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)")
   var results = regex.exec(window.location.href)
-  if (!results || !results[2]) return ''
   return decodeURIComponent(results[2].trim())
 }
 
-var picker = getParameterByName('picker').split(':')
-// if (picker.length) {
-//   document.getElementById('picker').value = picker[picker.length - 1]
-// }
+document.addEventListener('DOMContentLoaded', function () {
+  const URL = location.href.split("?")
+  if (URL.length > 1) {
+    const params = URL[1].split('&').map(p => p.split('='))
+    const picker = decodeURIComponent(params.find(p => p[0] === 'picker')?.[1]?.replace(/\+/g, ' '))?.split(':')?.at(-1)?.split('|')
+    console.log(picker)
+    if (picker && confirm(`Order is complete!\nPlease bring this tablet back to front desk.\n\nPress CANCEL if the same team (${picker.join(' & ')}) will not be picking the next order`)) {
+      document.getElementById('picker').value = picker[0]
+      document.getElementById('assistant').value = picker[1]
+      document.getElementById('assistant2').value = picker[2]
+    }
+  }
+  window.history.replaceState(null, '', URL[0])
+})
