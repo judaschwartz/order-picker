@@ -5,7 +5,7 @@ const { networkInterfaces } = require('os')
 
 const pickLine = [[], []]
 const outOfLine = []
-const prodInfo = fs.existsSync('alerts.json') ? JSON.parse(fs.readFileSync('alerts.json').toString()) : {}
+const prodAlerts = fs.existsSync('alerts.json') ? JSON.parse(fs.readFileSync('alerts.json').toString()) : {}
 const rawOrders = fs.readFileSync('orders.json').toString()
 const totalOrders = Object.keys(JSON.parse(rawOrders)).length
 const sides = ['right', 'left', 'no-car']
@@ -137,7 +137,7 @@ const server = createServer((req, res) => {
         } else {
           done = `<table>${headers}${done.reverse().join('')}</table>`
           itm = itm + lastItm + 1
-          warn += prodInfo[order[itm][3].toUpperCase()] ? `<script>alert('${prodInfo[order[itm][3].toUpperCase()]}')</script>` : ''
+          warn += prodAlerts[order[itm][3].toUpperCase()] ? `<script>alert('${prodAlerts[order[itm][3].toUpperCase()]}')</script>` : ''
           next = order.slice(itm + 1).map((r, i) => {
             const pick = (Number(r[1]) || 0) - (Number(r[2]) || 0)
             return Number(r[1]) ? `<tr data-itm="${i+itm+1}" data-n="${r[1]}"><td>${r[3]}</td><td>${r[0]}</td><td>${pick}</td></tr>` : ''
@@ -194,14 +194,16 @@ const server = createServer((req, res) => {
         } else if (filePath === './admin.html') {
           if (query.remove) {
             console.log('removing alert for', query.remove.toUpperCase())
-            delete prodInfo[query.remove.toUpperCase()]
+            delete prodAlerts[query.remove.toUpperCase()]
           }
           if (query.prod && query.alert) {
-            prodInfo[query.prod.toUpperCase()] = query.alert
+            prodAlerts[query.prod.toUpperCase()] = query.alert
             console.log('added alert for', query.prod.toUpperCase())
-            fs.writeFileSync('alerts.json', JSON.stringify(prodInfo))
+            fs.writeFileSync('alerts.json', JSON.stringify(prodAlerts))
           }
-          content = content.replace('ALERTS', Object.entries(prodInfo).map(p => `<tr><td>x</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
+          content = content.replace('ALERTS', Object.entries(prodAlerts)
+            .sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)))
+            .map(p => `<tr><td>x</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
           content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
           content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
           content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
