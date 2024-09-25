@@ -1,4 +1,4 @@
-<input type="checkbox" onclick="toggleRefresh()" checked>Auto Refresh Page
+<input type="checkbox" id="auto-reload" onclick="toggleRefresh()" checked>Auto Refresh Page
 <style>
   html, body{
     font-family: Arial, sans-serif;
@@ -32,30 +32,72 @@
     font-weight: bold;
     cursor: pointer;
   }
+  #alerts form {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: stretch;
+    justify-items: center;
+    flex-direction: row;
+  }
+  #alerts input {
+    width: 100px;
+    font-size: 30px;
+    text-align: center;
+  }
+  #alerts textarea {
+    width: 380px;
+    height: 80px;
+  }
+  #alerts tr td:first-child {
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+  }
 </style>
 <script>
+  const autoRefresh = setInterval(() => {window.location.reload()}, (60 * 1000))
   function toggleRefresh() {
-    if (!document.querySelector('input').checked) {
+    if (!document.querySelector('#auto-reload').checked) {
       console.log('Refresh stopped')
       clearInterval(autoRefresh)
     } else {
       window.location.reload()
     }
   }
-  var allTables = ['right', 'left', 'out', 'orders']
+  const allTables = ['right', 'left', 'out', 'orders']
   window.onload = function () {
     console.log('Refreshed at', new Date().toTimeString().slice(0, 8))
-    document.querySelectorAll('tr:first-child').forEach((tbl, ind) => {
-      tbl.querySelectorAll('td').forEach(element => {
-        element.onclick = function() {
-          console.log('Element clicked!', element.innerText.trim())
-          let url = new URL(window.location.href)
-          url.searchParams.set(allTables[ind], element.innerText.trim())
-          window.location.href = url.href
-        }
-      })
+    const loc = location.href.split("?")
+    window.history.replaceState(null, '', loc[0])
+    document.querySelector('#alerts form').addEventListener('change', function() {
+      clearInterval(autoRefresh)
+      document.querySelector('#auto-reload').checked = false
+    })
+    document.querySelectorAll('#alerts tr td:first-child').forEach(e => {
+      e.onclick = () => {
+        const url = new URL(window.location.href)
+        url.searchParams.set('remove', e.nextSibling.innerText)
+        window.location.href = url.href
+      }
     })
   }
-
-  var autoRefresh = setInterval(() => {window.location.reload()}, (60 * 1000))
+  function addProdAlert() {
+    const prod = document.querySelector('input[name="prod"]').value
+    const alert = document.querySelector('textarea[name="alert"]').value
+    if (prod && alert) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('prod', prod)
+      url.searchParams.set('alert', alert)
+      window.location.href = url.href
+    }
+  }
 </script>
+<div id="alerts">
+  <h2>Product Alerts</h2>
+  <form>
+    <input type="text" name="prod" placeholder="ID">
+    <textarea name="alert" placeholder="Alert Message">Out of stock</textarea>
+    <button type="button" onclick="addProdAlert()">Add Alert</button>
+  </form>
+  <table><tr><td width="40px">delete</td><td width="55px">ID</td><td>alert</td></tr>ALERTS</table>
+</div>
