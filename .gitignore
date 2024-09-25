@@ -1,8 +1,4 @@
 .history
 orders/*
 !orders/*.example
-orders.json
 .DS_Store
-resultsByItm.csv
-resultsByUser.csv
-completed-orders.csv

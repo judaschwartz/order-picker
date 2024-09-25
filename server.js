@@ -3,10 +3,11 @@ const fs = require('fs')
 const { parse } = require('url')
 const { networkInterfaces } = require('os')
 
+const path = 'orders/gen/'
 const pickLine = [[], []]
 const outOfLine = []
-const prodAlerts = fs.existsSync('alerts.json') ? JSON.parse(fs.readFileSync('alerts.json').toString()) : {}
-const rawOrders = fs.readFileSync('orders.json').toString()
+const prodAlerts = fs.existsSync('orders/alerts.json') ? JSON.parse(fs.readFileSync('orders/alerts.json').toString()) : {}
+const rawOrders = fs.readFileSync('orders/orders.json').toString()
 const totalOrders = Object.keys(JSON.parse(rawOrders)).length
 const sides = ['right', 'left', 'no-car']
 const pickDuration = (start, end) => {
@@ -36,23 +37,23 @@ const server = createServer((req, res) => {
     let comment = query.comment
     let prdName, prdQty, prdPicked, slot
     try {
-      if (filePath === './' && !fs.existsSync(`orders/${user}.csv`)) {
+      if (filePath === './' && !fs.existsSync(`${path}${user}.csv`)) {
         if (user) {
           warn = `could not find a record for order #${user}`
         }
         if (query.lastUser) {
           if (typeof comment !== 'undefined') {
-            const order = fs.readFileSync(`orders/${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
+            const order = fs.readFileSync(`${path}${query.lastUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
             if (comment !== order[1][1]) {
               order[1][1] = comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
-              fs.writeFileSync(`orders/${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
+              fs.writeFileSync(`${path}${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
             }
           }
           const side = pickLine.findIndex(s => s.some(c => c[0] === query.lastUser))
           const endTime = new Date().toTimeString().slice(0, 8)
           if (side > -1) {
             const completed = pickLine[side].findIndex(c => c[0] === query.lastUser)
-            fs.appendFileSync('./completed-orders.csv', `\n${[
+            fs.appendFileSync('./orders/completed-orders.csv', `\n${[
               ...pickLine[side][completed],
               endTime,
               pickDuration(pickLine[side][completed][3], endTime)
@@ -62,7 +63,7 @@ const server = createServer((req, res) => {
           } else {
             const completed = outOfLine.findIndex(c => c[0] === query.lastUser)
             if (completed > -1) {
-              fs.appendFileSync('./completed-orders.csv', `\n${[
+              fs.appendFileSync('./orders/completed-orders.csv', `\n${[
                 ...outOfLine[completed],
                 endTime,
                 `${pickDuration(outOfLine[completed][3], endTime)} (out of line)`
@@ -74,7 +75,7 @@ const server = createServer((req, res) => {
         filePath = './start-index.html'
       } else if (filePath === './') {
         filePath = './index.html'
-        const order = fs.readFileSync(`orders/${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
+        const order = fs.readFileSync(`${path}${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
         let lastItm = Number(query.itm) || 1
         let changed = false
         comment = typeof comment !== 'undefined' ? comment : order[1][1]
@@ -109,7 +110,7 @@ const server = createServer((req, res) => {
           order[lastItm][2] = qty
         }
         if (changed) {
-          fs.writeFileSync(`orders/${user}.csv`, order.map(l => l.join(',')).join("\n"))
+          fs.writeFileSync(`${path}${user}.csv`, order.map(l => l.join(',')).join("\n"))
           process.env.DEBUG && console.debug(`order #${user} was updated`)
         }
         if (order[1][2].includes(':')) {
@@ -193,21 +194,22 @@ const server = createServer((req, res) => {
           content = content.replace('ORDERS', rawOrders)
         } else if (filePath === './admin.html') {
           if (query.remove) {
-            console.log('removing alert for', query.remove.toUpperCase())
             delete prodAlerts[query.remove.toUpperCase()]
+            console.log('removed alert for', query.remove.toUpperCase())
+            fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
           }
           if (query.prod && query.alert) {
             prodAlerts[query.prod.toUpperCase()] = query.alert
             console.log('added alert for', query.prod.toUpperCase())
-            fs.writeFileSync('alerts.json', JSON.stringify(prodAlerts))
+            fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
           }
           content = content.replace('ALERTS', Object.entries(prodAlerts)
             .sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)))
-            .map(p => `<tr><td>x</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
+            .map(p => `<tr><td>&#10060;</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
           content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
           content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
           content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
-          const orders = fs.readFileSync('completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
+          const orders = fs.readFileSync('orders/completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
           content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders)
         }
         res.end(content, 'utf-8')
@@ -220,8 +222,8 @@ const server = createServer((req, res) => {
 const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat().find(({ family, internal, address }) => family === "IPv4" && !internal && address.startsWith('192.168.')).address
 const PORT = 3000 // Choose a port (e.g., 3000)
 
-if (!fs.existsSync('completed-orders.csv')) {
-  fs.writeFileSync('completed-orders.csv', 'orderId,picker,side,start,end,minutes')
+if (!fs.existsSync('orders/completed-orders.csv')) {
+  fs.writeFileSync('orders/completed-orders.csv', 'orderId,picker,side,start,end,minutes')
 }
 server.listen(PORT, LOCAL_IP, () => {
   console.log(`Server is running. There are ${totalOrders} orders to pick\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)

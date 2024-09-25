@@ -13,7 +13,7 @@ body {
 h1 {
   color: #333;
   margin: 0;
-  font-size: 24PX;
+  font-size: 24px;
   white-space: nowrap;
   overflow: auto;
 }
@@ -207,18 +207,41 @@ div.qty-box, table .qty-box div {
   margin: 10px 0 5px 35px;
 }
 
-.sides {
+#start-page {
+  text-transform: uppercase;
+}
+
+#start-page input {
+  text-transform: uppercase;
+  font-size: 20px;
+  margin: 0 0 25px;
+}
+
+#start-page input[type="number"] {
+  width: 80px;
+  display: block;
+  font-weight: bold;
+}
+
+#start-page label {
+  text-align: left;
+  font-size: 12px;
+  margin: 0;
+}
+
+#start-page .sides {
   display: flex;
   padding: 20px 0 0;
-  line-height: 35px;
+  line-height: 27px;
 }
 
-.sides label {
+#start-page .sides label {
   display: flex;
-  padding: 5px 30px;
+  padding: 0 28px;
+  font-size: 22px;
 }
 
-.sides input {
+#start-page .sides input {
   height: 25px;
   width: 25px;
 }

@@ -11,6 +11,6 @@ Ensure the file includes `pick seq,slot,name,ss` headers in the top row and orde
 ### Running the Application:
 After creating the necessary files, execute the command `node server.js` to start the server. Once the server is running, any device on the same Wi-Fi network can access the application by entering the IP address from the output in their browser. you can add the `DEBUG=true` env var to see debug logging
 ### Admin console
-To see what is being currently picked go to `/admin.html` a list of completed picks can be found at `completed-orders.csv`
+To see what is being currently picked go to `/admin.html` a list of completed picks can be found at `orders/completed-orders.csv`
 ### Obtaining Results:
 To generate CSV files summarizing discrepancies between picked and actual orders, execute the command `node processDiffs.js` This will create two files: `resultsByItm.csv` and `resultsByUser.csv`

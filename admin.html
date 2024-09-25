@@ -1,8 +1,17 @@
 <input type="checkbox" id="auto-reload" onclick="toggleRefresh()" checked>Auto Refresh Page
+<div id="alerts">
+  <h2>Product Alerts</h2>
+  <form>
+    <input type="text" name="prod" placeholder="ID" />
+    <textarea name="alert" placeholder="Alert Message">Out of stock</textarea>
+    <button type="button" onclick="addProdAlert()">Add Alert</button>
+  </form>
+  <table><tr><td width="40px">delete</td><td width="55px">ID</td><td>alert</td></tr>ALERTS</table>
+</div>
 <style>
   html, body{
     font-family: Arial, sans-serif;
-    margin:    0 auto;
+    margin: 0 auto;
     max-width: 650px;
   }
 
@@ -34,7 +43,7 @@
   }
   #alerts form {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
     align-items: stretch;
     justify-items: center;
     flex-direction: row;
@@ -45,7 +54,7 @@
     text-align: center;
   }
   #alerts textarea {
-    width: 380px;
+    width: 420px;
     height: 80px;
   }
   #alerts tr td:first-child {
@@ -92,12 +101,3 @@
     }
   }
 </script>
-<div id="alerts">
-  <h2>Product Alerts</h2>
-  <form>
-    <input type="text" name="prod" placeholder="ID">
-    <textarea name="alert" placeholder="Alert Message">Out of stock</textarea>
-    <button type="button" onclick="addProdAlert()">Add Alert</button>
-  </form>
-  <table><tr><td width="40px">delete</td><td width="55px">ID</td><td>alert</td></tr>ALERTS</table>
-</div>

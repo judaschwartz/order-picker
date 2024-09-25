@@ -1,41 +1,39 @@
 function validateForm(event) {
-  var qty = parseInt(document.getElementById('qty').value || 0)
+  const qty = parseInt(document.getElementById('qty').value || 0)
   document.getElementById('qty').value = qty
-
   document.getElementById('comment').value = document.getElementById('comment').value.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
-  var excepted = parseInt(document.getElementById('excepted').innerText || 0)
+  const excepted = parseInt(document.getElementById('excepted').innerText || 0)
   if (qty < excepted) {
-    if (!confirm('Received ' + qty + ' but they ordered ' + excepted + '.\nPress OK if you still want to continue to the next item.')) {
+    if (!confirm(`Received ${qty} but they ordered ${excepted}.\nPress OK if you still want to continue to the next item.`)) {
       event.preventDefault()
     }
   } else if (qty > excepted) {
-    alert('Received ' + qty + ' but they ordered ' + excepted + '.\nYou must remove extra items.')
+    alert(`Received ${qty} but they ordered ${excepted}.\nYou must remove extra items.`)
     event.preventDefault()
   }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  var URL = location.href.split("&")
-  if (URL.some(f => f.includes('picker'))) {
-    window.history.replaceState(null, '', URL.slice(0, -4).join('&'))
+  const loc = location.href.split('&')
+  if (loc.some((f) => f.includes('picker'))) {
+    window.history.replaceState(null, '', loc.slice(0, -4).join("&"))
   }
-  if (URL.some(f => f.includes('showAll'))) {
+  if (loc.some((f) => f.includes('showAll'))) {
     document.getElementById('showAll').checked = true
   }
-  const user = URL.find(u => u.includes('user'))?.split('=')?.[1];
-  [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => { // slice how many ahead we allow
-    tr.onclick = () => pickAhead(tr, user)
-  })
+  const user = loc.find((u) => u.includes('user'))?.split("=")?.[1]
+  [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
 })
+
 function increment(input = document.getElementById('qty')) {
   input.value = parseInt(input.value || 0) + 1
-  input.dispatchEvent(new Event('change', { 'bubbles': true }))
+  input.dispatchEvent(new Event('change', { bubbles: true }))
 }
 
 function decrement(input = document.getElementById('qty')) {
   if (input.value > 0) {
     input.value = parseInt(input.value || 0) - 1
-    input.dispatchEvent(new Event('change', { 'bubbles': true }))
+    input.dispatchEvent(new Event('change', { bubbles: true }))
   }
 }
 

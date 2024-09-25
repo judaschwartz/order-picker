@@ -1,8 +1,8 @@
 function validateForm(event) {
-  var orders = JSON.parse('ORDERS')
-  var user = parseInt(document.getElementById('user').value.trim())
-  var last = document.getElementById('last').value.trim().toUpperCase()
-  var picker = document.getElementById('picker').value.trim()
+  const orders = JSON.parse(`ORDERS`)
+  const user = parseInt(document.getElementById('user').value.trim())
+  const last = document.getElementById('last').value.trim().toUpperCase()
+  const picker = document.getElementById('picker').value.trim()
   document.getElementById('user').value = user
   document.getElementById('last').value = last
   document.getElementById('picker').value = picker
@@ -20,8 +20,8 @@ function validateForm(event) {
 }
 
 function getParameterByName(paramString, name) {
-  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)")
-  var results = regex.exec(window.location.href)
+  const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)")
+  const results = regex.exec(window.location.href)
   return decodeURIComponent(results[2].trim())
 }
 
