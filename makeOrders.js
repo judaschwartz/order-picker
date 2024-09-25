@@ -12,7 +12,7 @@ orders.forEach(l => {
   const order = l.slice(2)
     .map((n, i) => {
       ttl += parseInt(n) ? parseInt(n) : 0
-      return [names[i][0],  names[i][2], n, ,names[i][1], names[i][3]]
+      return [names[i][0], names[i][2].trim(), n, ,names[i][1], names[i][3]]
     })
     .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
     .map(l => l.slice(1).join(','))

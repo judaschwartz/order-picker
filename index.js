@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (loc.some((f) => f.includes('showAll'))) {
     document.getElementById('showAll').checked = true
   }
-  const user = loc.find((u) => u.includes('user'))?.split("=")?.[1]
+  const user = loc.find(u => u.includes('user'))?.split('=')?.[1];
   [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
 })
 

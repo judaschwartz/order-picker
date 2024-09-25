@@ -9,6 +9,7 @@ const outOfLine = []
 const prodAlerts = fs.existsSync('orders/alerts.json') ? JSON.parse(fs.readFileSync('orders/alerts.json').toString()) : {}
 const rawOrders = fs.readFileSync('orders/orders.json').toString()
 const totalOrders = Object.keys(JSON.parse(rawOrders)).length
+const itmTotals = {}
 const sides = ['right', 'left', 'no-car']
 const pickDuration = (start, end) => {
   start = start.split(':').map(Number)
@@ -19,10 +20,10 @@ const pickDuration = (start, end) => {
 const adminTable = (headers, data, name, col) => {
   col = headers.findIndex(h => h.trim() === (col || 'start'))
   data = [headers, ...data.sort((a, b) => {
-    if (!Number(a[col].split(' ')[0])) {
+    if (!Number(a[col]?.split(' ')?.[0]?.replace(/^A/, ''))) {
       return a[col].toLowerCase() > b[col].toLowerCase() ? 1 : -1
     } else {
-      return Number(a[col].split(' ')[0]) - Number(b[col].split(' ')[0])
+      return Number(a[col].split(' ')[0].replace(/^A/,'')) - Number(b[col].split(' ')[0].replace(/^A/,''))
     }
   })]
   return `<h2>${name}</h2><table><tr><td>${data.map(l => l.join('</td><td>')).join("</td></tr><tr><td>")}</td></tr></table>`
@@ -101,13 +102,20 @@ const server = createServer((req, res) => {
           order[1][1] = comment && comment.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
         }
         const qty = parseInt(query.qty || 0)
-        if (query.qty !== undefined && lastItm > 1 && qty !== order[lastItm][2]) {
+        const lstQty = parseInt(order[lastItm][2] || 0)
+        if (query.qty !== undefined && lastItm > 1 && qty !== lstQty) {
           changed = true
           process.env.DEBUG && console.debug(`picked ${qty} ${order[lastItm][0]} for order #${user}`)
           if (parseInt(order[lastItm][1] || 0) !== qty && !query.api) {
             console.warn(`DEVIATION: picked ${qty} ${order[lastItm][0]} for order #${user} but they ordered ${parseInt(order[lastItm][1] || 0)}`)
           }
           order[lastItm][2] = qty
+          const itmKey = `${order[lastItm][3]}-${order[lastItm][0]}`
+          if (itmTotals[itmKey]) {
+            itmTotals[itmKey] += (qty - lstQty)
+          } else {
+            itmTotals[itmKey] = qty
+          }
         }
         if (changed) {
           fs.writeFileSync(`${path}${user}.csv`, order.map(l => l.join(',')).join("\n"))
@@ -193,24 +201,29 @@ const server = createServer((req, res) => {
         } else if (filePath === './start-index.js') {
           content = content.replace('ORDERS', rawOrders)
         } else if (filePath === './admin.html') {
-          if (query.remove) {
-            delete prodAlerts[query.remove.toUpperCase()]
-            console.log('removed alert for', query.remove.toUpperCase())
-            fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
+          try {
+            if (query.remove) {
+              delete prodAlerts[query.remove.toUpperCase()]
+              console.log('removed alert for', query.remove.toUpperCase())
+              fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
+            }
+            if (query.prod && query.alert) {
+              prodAlerts[query.prod.toUpperCase()] = query.alert
+              console.log('added alert for', query.prod.toUpperCase())
+              fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
+            }
+            content = content.replace('ALERTS', Object.entries(prodAlerts)
+              .sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)))
+              .map(p => `<tr><td>&#10060;</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
+            content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
+            content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
+            content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
+            const orders = fs.readFileSync('orders/completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
+            content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders)
+            content += adminTable(['ID','name','qty picked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', 'ID')
+          } catch (error) {
+            content += 'THERE WAS AN ERROR RENDERING THE ADMIN PAGE<br>' + error.stack.replaceAll('\n', '<br>')
           }
-          if (query.prod && query.alert) {
-            prodAlerts[query.prod.toUpperCase()] = query.alert
-            console.log('added alert for', query.prod.toUpperCase())
-            fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
-          }
-          content = content.replace('ALERTS', Object.entries(prodAlerts)
-            .sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)))
-            .map(p => `<tr><td>&#10060;</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
-          content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
-          content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
-          content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
-          const orders = fs.readFileSync('orders/completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
-          content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders)
         }
         res.end(content, 'utf-8')
       }
