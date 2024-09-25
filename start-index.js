@@ -29,12 +29,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const URL = location.href.split("?")
   if (URL.length > 1) {
     const params = URL[1].split('&').map(p => p.split('='))
-    const picker = decodeURIComponent(params.find(p => p[0] === 'picker')?.[1]?.replace(/\+/g, ' '))?.split(':')?.at(-1)?.split('|')
-    console.log(picker)
-    if (picker && confirm(`Order is complete!\nPlease bring this tablet back to front desk.\n\nPress CANCEL if the same team (${picker.join(' & ')}) will not be picking the next order`)) {
-      document.getElementById('picker').value = picker[0]
-      document.getElementById('assistant').value = picker[1]
-      document.getElementById('assistant2').value = picker[2]
+    let picker = decodeURIComponent(params.find(p => p[0] === 'picker')[1]).split(':').at(-1).replace(/\+/g, ' ').split('|')
+    if (picker !== 'undefined' &&
+      confirm(`Order is complete!\nPlease bring this tablet back to front desk.\n\nPress CANCEL if the same team (${picker.join(' & ')}) will not be picking the next order`)) {
+      document.getElementById('picker').value = picker[0] || ''
+      document.getElementById('assistant').value = picker[1] || ''
+      document.getElementById('assistant2').value = picker[2] || ''
     }
   }
   window.history.replaceState(null, '', URL[0])
