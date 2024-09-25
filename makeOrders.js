@@ -1,10 +1,11 @@
 const fs = require('fs')
-const orders = fs.readFileSync('orders/allOrders.csv').toString().split("\n").filter(Boolean)
+const orders = fs.readFileSync('orders/allOrders.csv').toString().split("\n").slice(1)
+  .filter(o => Number(o.replace(/,/g, '').match(/\d+/g)?.[1]))
 const names = fs.readFileSync('orders/nameSlot.csv').toString().split("\n").slice(1).map(l => l.split(','))
-orders.push(['999', 'test2', ...names.map((n, i) => i)].join(','))
-orders.push(['998', 'test1', ...names.map((n, i) => (!i || i === names.length -1)*1)].join(','))
+// orders.push(['999', 'test2', ...names.map((n, i) => i)].join(','))
+// orders.push(['998', 'test1', ...names.map((n, i) => (!i || i === names.length -1)*1)].join(','))
 const jsonFile = {}
-orders.slice(1).forEach(l => {
+orders.forEach(l => {
   l = l.trim().split(',')
   jsonFile[l[0]] = l[1].toLocaleUpperCase().trim()
   let ttl = 0
@@ -17,5 +18,5 @@ orders.slice(1).forEach(l => {
     .map(l => l.slice(1).join(','))
   fs.writeFileSync(`orders/${l[0]}.csv`, ['name,ordered,picked,slot,ss', `${l[1]},,,${ttl},`, ...order].join("\n"))
 })
-console.log(`${orders.length - 1} Orders Created`)
 fs.writeFileSync('orders.json', JSON.stringify(jsonFile))
+console.log(`${orders.length} Orders Created`)
