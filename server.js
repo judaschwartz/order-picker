@@ -7,9 +7,9 @@ const path = 'orders/gen/'
 const pickLine = [[], []]
 const outOfLine = []
 const prodAlerts = fs.existsSync('orders/alerts.json') ? JSON.parse(fs.readFileSync('orders/alerts.json').toString()) : {}
+const itmTotals = fs.existsSync('orders/itmTotals.json') ? JSON.parse(fs.readFileSync('orders/itmTotals.json').toString()) : {}
 const rawOrders = fs.readFileSync('orders/orders.json').toString()
 const totalOrders = Object.keys(JSON.parse(rawOrders)).length
-const itmTotals = {}
 const sides = ['right', 'left', 'no-car']
 const pickDuration = (start, end) => {
   start = start.split(':').map(Number)
@@ -17,7 +17,7 @@ const pickDuration = (start, end) => {
   return end[1] - start[1] + ((end[0] - start[0]) * 60)
 }
 
-const adminTable = (headers, data, name, col) => {
+const adminTable = (headers, data, name, col, id) => {
   col = headers.findIndex(h => h.trim() === (col || 'start'))
   data = [headers, ...data.sort((a, b) => {
     if (!Number(a[col]?.split(' ')?.[0]?.replace(/^A/, ''))) {
@@ -26,7 +26,7 @@ const adminTable = (headers, data, name, col) => {
       return Number(a[col].split(' ')[0].replace(/^A/,'')) - Number(b[col].split(' ')[0].replace(/^A/,''))
     }
   })]
-  return `<h2>${name}</h2><table><tr><td>${data.map(l => l.join('</td><td>')).join("</td></tr><tr><td>")}</td></tr></table>`
+  return `<div id="${id}"><h2>${name}</h2><table><tr><td>${data.map(l => l.join('</td><td>')).join("</td></tr><tr><td>")}</td></tr></table></div>`
 }
 
 const server = createServer((req, res) => {
@@ -36,7 +36,7 @@ const server = createServer((req, res) => {
     let filePath = '.' + pathname
     const user = query.user
     let comment = query.comment
-    let prdName, prdQty, prdPicked, slot
+    let prdName, prdQty, prdPicked, slot, side
     try {
       if (filePath === './' && !fs.existsSync(`${path}${user}.csv`)) {
         if (user) {
@@ -143,10 +143,11 @@ const server = createServer((req, res) => {
           warn += order[order.length - 1][1] === 'Yes' ? '<br><b>PICKUP PRODUCE PACKAGE</b>' : ''
           done = `<table>${headers}${done.join('')}</table>`
           filePath = './end-index.html'
+          fs.writeFileSync('orders/itmTotals.json', JSON.stringify(itmTotals, null, 2))
         } else {
           done = `<table>${headers}${done.reverse().join('')}</table>`
           itm = itm + lastItm + 1
-          warn += prodAlerts[order[itm][3].toUpperCase()] ? `<script>alert('${prodAlerts[order[itm][3].toUpperCase()]}')</script>` : ''
+          warn += prodAlerts[order[itm][3]] ? `<script>alert('${prodAlerts[order[itm][3]]}')</script>` : ''
           next = order.slice(itm + 1).map((r, i) => {
             const pick = (Number(r[1]) || 0) - (Number(r[2]) || 0)
             return Number(r[1]) ? `<tr data-itm="${i+itm+1}" data-n="${r[1]}"><td>${r[3]}</td><td>${r[0]}</td><td>${pick}</td></tr>` : ''
@@ -155,7 +156,8 @@ const server = createServer((req, res) => {
           next = `<table>${headers}${next.join('')}</table>`
         }
         prdName = order[itm][0]
-        slot = `${order[itm][4] ? 'side' : ''}"># ${order[itm][3]}`
+        slot = order[itm][3]
+        side = order[itm][4] ? 'side' : ''
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
       }
@@ -183,7 +185,7 @@ const server = createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': contentType })
         content = content.toString().replace('WARN', warn)
         if (filePath === './index.html' || filePath === './end-index.html') {
-          content = content.replace(/USER|DONE_LIST|NEXT_LIST|CMT|QTY|FILLED|ITM|SLOT|ULAST|NAME/g, (matched) => {
+          content = content.replace(/USER|DONE_LIST|NEXT_LIST|CMT|QTY|FILLED|ITM|SLOT|SIDE|ULAST|NAME/g, (matched) => {
             switch(matched){
               case 'USER': return user
               case 'DONE_LIST': return done
@@ -193,6 +195,7 @@ const server = createServer((req, res) => {
               case 'FILLED': return prdPicked
               case 'ITM': return itm
               case 'SLOT': return slot
+              case 'SIDE': return side
               case 'ULAST': return userName
               case 'NAME': return prdName
               default: return matched
@@ -205,22 +208,20 @@ const server = createServer((req, res) => {
             if (query.remove) {
               delete prodAlerts[query.remove.toUpperCase()]
               console.log('removed alert for', query.remove.toUpperCase())
-              fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
+              fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts, null, 2))
             }
             if (query.prod && query.alert) {
               prodAlerts[query.prod.toUpperCase()] = query.alert
               console.log('added alert for', query.prod.toUpperCase())
-              fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts))
+              fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts, null, 2))
             }
-            content = content.replace('ALERTS', Object.entries(prodAlerts)
-              .sort((a, b) => Number(a[0].slice(1)) - Number(b[0].slice(1)))
-              .map(p => `<tr><td>&#10060;</td><td>${p[0]}</td><td>${p[1]}</td></tr>`).join(''))
-            content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right)
-            content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left)
-            content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out)
+            content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
+            content += adminTable(['ID','name','qty picked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', 'ID', 'itms')
+            content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right, 'right')
+            content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left, 'left')
+            content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out, 'out')
             const orders = fs.readFileSync('orders/completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
-            content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders)
-            content += adminTable(['ID','name','qty picked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', 'ID')
+            content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders, 'orders')
           } catch (error) {
             content += 'THERE WAS AN ERROR RENDERING THE ADMIN PAGE<br>' + error.stack.replaceAll('\n', '<br>')
           }

@@ -9,13 +9,13 @@ orders.forEach(l => {
   l = l.trim().split(',')
   jsonFile[l[0]] = l[1].toLocaleUpperCase().trim()
   let ttl = 0
-  const order = l.slice(2)
-    .map((n, i) => {
-      ttl += parseInt(n) ? parseInt(n) : 0
-      return [names[i][0], names[i][2].trim(), n, ,names[i][1], names[i][3]]
-    })
-    .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
-    .map(l => l.slice(1).join(','))
+  const order = l.slice(2).map((n, i) => {
+    ttl += parseInt(n) ? parseInt(n) : 0
+    return [names[i][0], names[i][2]?.trim(), n.toUpperCase(), , names[i][1], names[i][3]?.trim()]
+  }).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(l => l.slice(1).join(','))
+  if (names[0].length === 3) { // if no produce add another line at end
+    order.push(',,,,')
+  }
   fs.writeFileSync(`orders/gen/${l[0]}.csv`, ['name,ordered,picked,slot,ss', `${l[1]},,,${ttl},`, ...order].join("\n"))
 })
 fs.writeFileSync('orders/orders.json', JSON.stringify(jsonFile, null, 2))

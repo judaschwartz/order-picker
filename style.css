@@ -28,6 +28,8 @@ p {
   white-space: nowrap;
   overflow: auto;
   max-width: 100%;
+  margin: 0 0 5px;
+  padding: 5px 0 0;
 }
 
 .prod-name.side {
@@ -49,8 +51,9 @@ p {
 }
 
 .prod-name > b {
-  font-size: 50px;
+  font-size: 45px;
   display: block;
+  line-height: 35px;
 }
 
 form label b {
