@@ -9,7 +9,8 @@ const outOfLine = []
 const prodAlerts = fs.existsSync('orders/alerts.json') ? JSON.parse(fs.readFileSync('orders/alerts.json').toString()) : {}
 const itmTotals = fs.existsSync('orders/itmTotals.json') ? JSON.parse(fs.readFileSync('orders/itmTotals.json').toString()) : {}
 const rawOrders = fs.readFileSync('orders/orders.json').toString()
-const totalOrders = Object.keys(JSON.parse(rawOrders)).length
+const ordersJson = JSON.parse(rawOrders)
+const totalOrders = Object.keys(ordersJson).length
 const sides = ['right', 'left', 'no-car']
 const pickDuration = (start, end) => {
   start = start.split(':').map(Number)
@@ -50,24 +51,24 @@ const server = createServer((req, res) => {
               fs.writeFileSync(`${path}${query.lastUser}.csv`, order.map(l => l.join(',')).join("\n"))
             }
           }
-          const side = pickLine.findIndex(s => s.some(c => c[0] === query.lastUser))
+          const side = pickLine.findIndex(s => s.some(c => c[1] === query.lastUser))
           const endTime = new Date().toTimeString().slice(0, 8)
           if (side > -1) {
-            const completed = pickLine[side].findIndex(c => c[0] === query.lastUser)
+            const completed = pickLine[side].findIndex(c => c[1] === query.lastUser)
             fs.appendFileSync('./orders/completed-orders.csv', `\n${[
               ...pickLine[side][completed],
               endTime,
-              pickDuration(pickLine[side][completed][3], endTime)
+              pickDuration(pickLine[side][completed][4], endTime)
             ].join(',')}`)
             outOfLine.push(...pickLine[side].slice(0, completed))
             pickLine[side] = pickLine[side].slice(completed + 1)
           } else {
-            const completed = outOfLine.findIndex(c => c[0] === query.lastUser)
+            const completed = outOfLine.findIndex(c => c[1] === query.lastUser)
             if (completed > -1) {
               fs.appendFileSync('./orders/completed-orders.csv', `\n${[
                 ...outOfLine[completed],
                 endTime,
-                `${pickDuration(outOfLine[completed][3], endTime)} (out of line)`
+                `${pickDuration(outOfLine[completed][4], endTime)} (out of line)`
               ].join(',')}`)
               outOfLine.splice(completed, 1)
             }
@@ -84,7 +85,7 @@ const server = createServer((req, res) => {
           const picker = [query.picker, query.assistant, query.assistant2].join('|').replace(/,/g, ' ')
           console.info(`${picker} started picking order #${user}`)
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
-          warn += order[1][3] > 80 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
+          warn += order[1][3] > 35 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
           changed = true
           if (order[1][2]) {
             order[1][2] += `:${picker}`
@@ -95,7 +96,7 @@ const server = createServer((req, res) => {
             order[1][2] = picker
           }
           const lane = query.side == 2 ? outOfLine : pickLine[query.side]
-          lane.push([user, picker, sides[query.side], new Date().toTimeString().slice(0, 8)])
+          lane.push([ordersJson[String(user)], user, picker, sides[query.side], new Date().toTimeString().slice(0, 8)])
         }
         if (typeof comment !== 'undefined' && comment !== order[1][1]) {
           changed = true
@@ -217,11 +218,13 @@ const server = createServer((req, res) => {
             }
             content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
             content += adminTable(['ID','name','qty picked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', 'ID', 'itms')
-            content += adminTable(['orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[3]]), 'Right Side:', query.right, 'right')
-            content += adminTable(['orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[3]]), 'Left Side:', query.left, 'left')
-            content += adminTable(['orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out, 'out')
+            content += adminTable(['name','orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[2],r[4]]), 'Right Side:', query.right, 'right')
+            content += adminTable(['name','orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[2],r[4]]), 'Left Side:', query.left, 'left')
+            content += adminTable(['name','orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out, 'out')
             const orders = fs.readFileSync('orders/completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
-            content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders, 'orders')
+            content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders, 'done')
+            const coming = Object.entries(ordersJson).filter(k => k[0] && !orders.map(o => o[1]).includes(k[0]))
+            content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, 'orderID', 'waiting')
           } catch (error) {
             content += 'THERE WAS AN ERROR RENDERING THE ADMIN PAGE<br>' + error.stack.replaceAll('\n', '<br>')
           }
@@ -237,7 +240,7 @@ const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat
 const PORT = 3000 // Choose a port (e.g., 3000)
 
 if (!fs.existsSync('orders/completed-orders.csv')) {
-  fs.writeFileSync('orders/completed-orders.csv', 'orderId,picker,side,start,end,minutes')
+  fs.writeFileSync('orders/completed-orders.csv', 'name,orderId,picker,side,start,end,minutes')
 }
 server.listen(PORT, LOCAL_IP, () => {
   console.log(`Server is running. There are ${totalOrders} orders to pick\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)
