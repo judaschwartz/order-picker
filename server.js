@@ -40,6 +40,7 @@ const server = createServer((req, res) => {
     let prdName, prdQty, prdPicked, slot, side
     try {
       if (filePath === './' && !fs.existsSync(`${path}${user}.csv`)) {
+        filePath = './start-index.html'
         if (user) {
           warn = `could not find a record for order #${user}`
         }
@@ -74,7 +75,15 @@ const server = createServer((req, res) => {
             }
           }
         }
-        filePath = './start-index.html'
+        if (query.deleteUser) {
+          const side = pickLine.findIndex(s => s.some(c => c[1] === query.deleteUser))
+          const lane = side > -1 ? pickLine[side] : outOfLine
+          lane.splice(lane.findIndex(c => c[1] === query.deleteUser), 1)
+          console.info(`canceled picking order #${query.deleteUser}`)
+          const order = fs.readFileSync(`${path}${query.deleteUser}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))
+          order[1][2] = order[1][2].split(':').slice(0, -1).join(':')
+          fs.writeFileSync(`${path}${query.deleteUser}.csv`, order.map(l => l.join(',')).join("\n"))
+        }
       } else if (filePath === './') {
         filePath = './index.html'
         const order = fs.readFileSync(`${path}${user}.csv`).toString().split("\n").map(l => l.split(',').map(c => c.trim()))

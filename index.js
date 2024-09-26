@@ -1,3 +1,5 @@
+const loc = location.href.split('&')
+const user = loc.find(u => u.includes('user'))?.split('=')?.[1];
 function validateForm(event) {
   const qty = parseInt(document.getElementById('qty').value || 0)
   document.getElementById('qty').value = qty
@@ -12,16 +14,13 @@ function validateForm(event) {
     event.preventDefault()
   }
 }
-
 document.addEventListener('DOMContentLoaded', function () {
-  const loc = location.href.split('&')
   if (loc.some((f) => f.includes('picker'))) {
     window.history.replaceState(null, '', loc.slice(0, -4).join("&"))
   }
-  if (loc.some((f) => f.includes('showAll'))) {
-    document.getElementById('showAll').checked = true
-  }
-  const user = loc.find(u => u.includes('user'))?.split('=')?.[1];
+  // if (loc.some((f) => f.includes('showAll'))) {
+  //   document.getElementById('showAll').checked = true
+  // }
   [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
 })
 
@@ -37,7 +36,15 @@ function decrement(input = document.getElementById('qty')) {
   }
 }
 
-function pickAhead(tr, user) {
+function goBack() {
+  if (document.referrer.includes('user=')) {
+    history.go(-1)
+  } else {
+    location.href = document.referrer + `?deleteUser=${user}`
+  }
+}
+
+function pickAhead(tr) {
   if (tr.nextElementSibling?.classList?.contains('qty-box')) {
     tr.nextElementSibling.remove()
     tr.nextElementSibling.remove()
@@ -56,7 +63,7 @@ function pickAhead(tr, user) {
     box.appendChild(plusButton)
     plusButton.onclick = () => increment(numberDisplay)
     minusButton.onclick = () => decrement(numberDisplay)
-    numberDisplay.onchange = (e) => sendChange(e.target, user, tr)
+    numberDisplay.onchange = (e) => sendChange(e.target, tr)
     const td = document.createElement('td')
     td.colSpan = tr.cells.length
     td.appendChild(box)
@@ -66,7 +73,7 @@ function pickAhead(tr, user) {
   }
 }
 let change
-function sendChange(elem, user, tr) {
+function sendChange(elem, tr) {
   clearTimeout(change)
   change = setTimeout(() => {
     fetch(`/?api=1&user=${user}&itm=${tr.getAttribute('data-itm')}&qty=${elem.value}`).then(() => {

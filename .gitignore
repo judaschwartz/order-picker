@@ -1,4 +1,5 @@
 .history
-orders/*
-!orders/*.example
+orders/gen/*.csv
+orders/*.json
+orders/*.csv
 .DS_Store
