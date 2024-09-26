@@ -1,6 +1,6 @@
 const loc = location.href.split("?")
+const orders = JSON.parse(`ORDERS`)
 function validateForm(event) {
-  const orders = JSON.parse(`ORDERS`)
   const user = parseInt(document.getElementById('user').value.trim())
   const last = document.getElementById('last').value.trim().toUpperCase()
   const picker = document.getElementById('picker').value.trim()
@@ -32,4 +32,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
   window.history.replaceState(null, '', loc[0])
+})
+
+document.querySelector('#user').addEventListener('change', function () {
+  const user = parseInt(this.value.trim())
+  if (orders[user]) {
+    document.getElementById('last').value = orders[user]
+    document.getElementById('picker').focus()
+  } else {
+    alert('Order #' + user + ' is not on our list in orders.json')
+  }
 })

@@ -2,9 +2,10 @@
 <div id="alerts">
   <h2>Product Alerts</h2>
   <form>
-    <input type="text" name="prod" placeholder="ID" />
-    <textarea name="alert" placeholder="Alert Message">Out of stock</textarea>
-    <button type="button" onclick="addProdAlert()">Add Alert</button>
+    <input type="text" name="prodId" placeholder="ID" />
+    <textarea name="itmAlert" placeholder="Alert Message">Out of stock</textarea>
+    <button type="button" onclick="addProdAlert(false)">Add Info</button>
+    <button type="button" onclick="addProdAlert(true)">Add Alert</button>
   </form>
 </div>
 <style>
@@ -53,7 +54,7 @@
     text-align: center;
   }
   #alerts textarea {
-    width: 420px;
+    width: 380px;
     height: 80px;
   }
   #alerts tr td:first-child {
@@ -90,13 +91,13 @@
       }
     })
   }
-  function addProdAlert() {
-    const prod = document.querySelector('input[name="prod"]').value
-    const alert = document.querySelector('textarea[name="alert"]').value
-    if (prod && alert) {
+  function addProdAlert(popup) {
+    const prodId = document.querySelector('input[name="prodId"]').value
+    const itmAlert = document.querySelector('textarea[name="itmAlert"]').value
+    if (prodId && itmAlert) {
       const url = new URL(window.location.href)
-      url.searchParams.set('prod', prod)
-      url.searchParams.set('alert', alert)
+      url.searchParams.set('prodId', `${popup ? 'POP ' : ''}${prodId.toUpperCase()}`)
+      url.searchParams.set('itmAlert', itmAlert)
       window.location.href = url.href
     }
   }

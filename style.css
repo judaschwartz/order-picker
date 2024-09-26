@@ -50,6 +50,13 @@ p {
   visibility: initial;
 }
 
+.prod-name i {
+  display: block;
+  font-size: 20px;
+  color: red;
+  background: yellow;
+}
+
 .prod-name > b {
   font-size: 45px;
   display: block;

@@ -113,7 +113,7 @@ const server = createServer((req, res) => {
         }
         const qty = parseInt(query.qty || 0)
         const lstQty = parseInt(order[lastItm][2] || 0)
-        if (query.qty !== undefined && lastItm > 1 && qty !== lstQty) {
+        if (query.qty !== undefined && lastItm > 1 && qty !== lstQty && qty !== 998) {
           changed = true
           process.env.DEBUG && console.debug(`picked ${qty} ${order[lastItm][0]} for order #${user}`)
           if (parseInt(order[lastItm][1] || 0) !== qty && !query.api) {
@@ -146,7 +146,7 @@ const server = createServer((req, res) => {
         let headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
         if (query.api) {
           filePath = './api.html'
-        } else if (itm === -1 || lastItm === order.length - 2) {
+        } else if (itm === -1 || lastItm === order.length - 2 || qty === 998) {
           itm = order.length - 1
           console.info(`${order[1][2]} finished picking order #${user}`)
           warn = done.length ? warn : 'This order has no items to pick'
@@ -157,7 +157,7 @@ const server = createServer((req, res) => {
         } else {
           done = `<table>${headers}${done.reverse().join('')}</table>`
           itm = itm + lastItm + 1
-          warn += prodAlerts[order[itm][3]] ? `<script>alert('${prodAlerts[order[itm][3]]}')</script>` : ''
+          warn += prodAlerts['POP ' + order[itm][3]] ? `<script>alert('${ prodAlerts['POP ' + order[itm][3]]}')</script>` : ''
           next = order.slice(itm + 1).map((r, i) => {
             const pick = (Number(r[1]) || 0) - (Number(r[2]) || 0)
             return Number(r[1]) ? `<tr data-itm="${i+itm+1}" data-n="${r[1]}"><td>${r[3]}</td><td>${r[0]}</td><td>${pick}</td></tr>` : ''
@@ -165,8 +165,8 @@ const server = createServer((req, res) => {
           headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">Needed</th></tr>'
           next = `<table>${headers}${next.join('')}</table>`
         }
-        prdName = order[itm][0]
         slot = order[itm][3]
+        prdName = order[itm][0] + (prodAlerts[slot] ? `<i>${prodAlerts[slot]}</i>` : '')
         side = order[itm][4] ? 'side' : ''
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
@@ -216,13 +216,13 @@ const server = createServer((req, res) => {
         } else if (filePath === './admin.html') {
           try {
             if (query.remove) {
-              delete prodAlerts[query.remove.toUpperCase()]
-              console.log('removed alert for', query.remove.toUpperCase())
+              delete prodAlerts[query.remove]
+              console.log('removed alert for', query.remove)
               fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts, null, 2))
             }
-            if (query.prod && query.alert) {
-              prodAlerts[query.prod.toUpperCase()] = query.alert
-              console.log('added alert for', query.prod.toUpperCase())
+            if (query.prodId && query.itmAlert) {
+              prodAlerts[query.prodId] = query.itmAlert
+              console.log('added alert for', query.prodId)
               fs.writeFileSync('orders/alerts.json', JSON.stringify(prodAlerts, null, 2))
             }
             content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')

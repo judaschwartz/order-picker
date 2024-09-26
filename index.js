@@ -9,7 +9,7 @@ function validateForm(event) {
     if (!confirm(`Received ${qty} but they ordered ${excepted}.\nPress OK if you still want to continue to the next item.`)) {
       event.preventDefault()
     }
-  } else if (qty > excepted) {
+  } else if (qty > excepted && qty !== 998) {
     alert(`Received ${qty} but they ordered ${excepted}.\nYou must remove extra items.`)
     event.preventDefault()
   }
