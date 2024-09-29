@@ -59,7 +59,7 @@ const server = createServer((req, res) => {
             fs.appendFileSync('./orders/completed-orders.csv', `\n${[
               ...pickLine[side][completed],
               endTime,
-              pickDuration(pickLine[side][completed][4], endTime)
+              pickDuration(pickLine[side][completed][3], endTime)
             ].join(',')}`)
             outOfLine.push(...pickLine[side].slice(0, completed))
             pickLine[side] = pickLine[side].slice(completed + 1)
@@ -91,7 +91,7 @@ const server = createServer((req, res) => {
         let changed = false
         comment = typeof comment !== 'undefined' ? comment : order[1][1]
         if (query.picker) {
-          const picker = [query.picker, query.assistant, query.assistant2].join('|').replace(/,/g, ' ')
+          const picker = [query.picker, query.assistant, query.assistant2].filter(Boolean).join(' & ').replace(/,/g, ' ')
           console.info(`${picker} started picking order #${user}`)
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
           warn += order[1][3] > 35 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
@@ -105,7 +105,8 @@ const server = createServer((req, res) => {
             order[1][2] = picker
           }
           const lane = query.side == 2 ? outOfLine : pickLine[query.side]
-          lane.push([ordersJson[String(user)], user, picker, sides[query.side], new Date().toTimeString().slice(0, 8)])
+          lane.push([ordersJson[String(user)], user, picker, new Date().toTimeString().slice(0, 8), order[1][3], sides[query.side]])
+console.log('lane', lane)
         }
         if (typeof comment !== 'undefined' && comment !== order[1][1]) {
           changed = true
@@ -227,9 +228,9 @@ const server = createServer((req, res) => {
             }
             content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
             content += adminTable(['ID','name','qty picked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', 'ID', 'itms')
-            content += adminTable(['name','orderId','picker','start'], pickLine[1].map(r => [r[0],r[1],r[2],r[4]]), 'Right Side:', query.right, 'right')
-            content += adminTable(['name','orderId','picker','start'], pickLine[0].map(r => [r[0],r[1],r[2],r[4]]), 'Left Side:', query.left, 'left')
-            content += adminTable(['name','orderId','picker','side','start'], outOfLine, 'Out of Line:', query.out, 'out')
+            content += adminTable(['name','orderId','picker','start','qty'], pickLine[1].map(o => o.slice(0, -1)), 'Right Side:', query.right, 'right')
+            content += adminTable(['name','orderId','picker','start','qty'], pickLine[0].map(o => o.slice(0, -1)), 'Left Side:', query.left, 'left')
+            content += adminTable(['name','orderId','picker','start','qty','side'], outOfLine, 'Out of Line:', query.out, 'out')
             const orders = fs.readFileSync('orders/completed-orders.csv', 'utf8').split("\n").map(r => r.split(','))
             content += adminTable(orders[0], orders.slice(1), `Completed Orders: ${orders.length - 1} of ${totalOrders}`, query.orders, 'done')
             const coming = Object.entries(ordersJson).filter(k => k[0] && !orders.map(o => o[1]).includes(k[0]))
@@ -249,7 +250,7 @@ const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat
 const PORT = 3000 // Choose a port (e.g., 3000)
 
 if (!fs.existsSync('orders/completed-orders.csv')) {
-  fs.writeFileSync('orders/completed-orders.csv', 'name,orderId,picker,side,start,end,minutes')
+  fs.writeFileSync('orders/completed-orders.csv', 'name,orderId,picker,start,side,qty,end,minutes')
 }
 server.listen(PORT, LOCAL_IP, () => {
   console.log(`Server is running. There are ${totalOrders} orders to pick\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)
