@@ -2,6 +2,7 @@ const fs = require('fs')
 const orders = fs.readFileSync('orders/allOrders.csv').toString().split("\n").slice(1)
   .filter(o => Number(o.replace(/,/g, '').match(/\d+/g)?.[1]))
 const names = fs.readFileSync('orders/nameSlot.csv').toString().split("\n").slice(1).map(l => l.split(','))
+// add test orders
 // orders.push(['999', 'test2', ...names.map((n, i) => i)].join(','))
 // orders.push(['998', 'test1', ...names.map((n, i) => (!i || i === names.length -1)*1)].join(','))
 const jsonFile = {}
@@ -21,3 +22,13 @@ orders.forEach(l => {
 })
 fs.writeFileSync('orders/orders.json', JSON.stringify(jsonFile, null, 2))
 console.log(`${orders.length} Orders Created`)
+// create unpaid.json file
+// const up = fs.readFileSync('orders/unpaid.csv').toString().split("\n").map(l => l.split(','))
+// unpaid = {}
+// up[0].forEach((l, i) => {
+//   if (up[1][i] > 2) {
+//     unpaid[l] = up[1][i]
+//   }
+// })
+
+// fs.writeFileSync('orders/unpaid.json', JSON.stringify(unpaid, null, 2))

@@ -13,24 +13,25 @@
   <div id="start-page" class="picker-app">
     <h1>Start an Order</h1>
     <div class="warn">WARN</div>
-    <form onsubmit="validateForm(event)" action="/">
+    <form onsubmit="validateForm(event)" action="/" class="start">
       <label for="data">Order ID*</label>
       <input type="number" id="user" name="user" required>
-      <label for="last">Last Name*</label>
-      <input type="text" id="last" name="last" required>
-      <label for="picker">Picked by*</label>
-      <input type="number" id="picker" name="picker" required value="">
-      <label for="assistant">Assistant 1</label>
-      <input type="text" id="assistant" name="assistant" value="">
-      <label for="assistant2">Assistant 2</label>
-      <input type="text" id="assistant2" name="assistant2" value="">
-      <div class="sides">
-        <span>Side*</span>
-        <label><input type="radio" name="side" value="0" required>Left</label>
-        <label><input type="radio" name="side" value="1" required>Right</label>
-        <label><input type="radio" name="side" value="2" required>No Car</label>
+      <div class="after-id">
+        <label for="name">Name*</label>
+        <input type="text" id="name" name="name" disabled>
+        <label for="picker">Picked by*</label>
+        <div id="p-name">
+          <input type="number" id="picker" name="picker" required value="">
+          <span></span>
+        </div>
+        <div class="sides">
+          <span>Side*</span>
+          <label><input type="radio" name="side" value="0" required>Left</label>
+          <label><input type="radio" name="side" value="1" required>Right</label>
+          <label><input type="radio" name="side" value="2" checked required>No Car</label>
+        </div>
+        <button type="submit">START</button>
       </div>
-      <button type="submit">START</button>
     </form>
   </div>
 </body>

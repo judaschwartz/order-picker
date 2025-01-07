@@ -3,4 +3,6 @@ orders/gen/*.csv
 orders/*.json
 orders/*.csv
 orders/old
+orders/printed/*.pdf
 .DS_Store
+node_modules

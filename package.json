@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "puppeteer": "^23.11.1",
+    "unix-print": "^1.3.2"
+  }
+}

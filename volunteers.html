@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>volunteers</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style-admin.css">
+</head>
+<body>
+<div class="admin-form" id="register">
+  <h2>Volunteer Sign up</h2>
+  <form>
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" placeholder="First Last" />
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" placeholder="999-999-9999" />
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" placeholder="user@email.com" />
+    <button type="button" onclick="addVol()">Add Volunteer</button>
+  </form>
+</div>
+<script>
+  const url = new URL(location.href)
+  window.onload = function () {
+    const params = url.searchParams;
+    ['name', 'phone', 'email'].forEach(param => params.delete(param))
+    window.history.replaceState(null, '', url.pathname + '?' + params.toString())
+    document.querySelectorAll('.adminTable').forEach(divTable => {
+      const divId = divTable.id
+      divTable.querySelectorAll("tbody tr:first-child td").forEach(cell => {
+        cell.addEventListener("click", (event) => {
+          const cellText = event.target.textContent.toLowerCase()
+          const url = new URL(window.location)
+          if (url.searchParams.get(divId) === cellText) {
+            url.searchParams.set(divId, `A-${cellText}`)
+          } else {
+            url.searchParams.set(divId, cellText)
+          }
+          window.location.href = url.href
+        })
+      })
+    })
+  }
+  function addVol() {
+    const name = document.querySelector('input[name="name"]').value
+    const phone = document.querySelector('input[name="phone"]').value.replace(/\D/g, '')
+    const email = document.querySelector('input[name="email"]').value
+    if (name.trim()) {
+      url.searchParams.set('name', name.trim())
+      url.searchParams.set('phone', `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6, 10)}`)
+      url.searchParams.set('email', email.trim().toLowerCase())
+      window.location.href = url.href
+    }
+  }
+</script>

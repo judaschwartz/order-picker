@@ -2,13 +2,13 @@ const fs = require('fs')
 const orderIds = Object.keys(JSON.parse(fs.readFileSync('./orders/orders.json').toString()))
 const resultsByUser = ['Order #, Picker, Comments, Missing items']
 const resultsByItm = {}
-let skipped = 0
+let skipped = []
 orderIds.forEach(id => {
   const diff = [id]
   if (fs.existsSync(`orders/gen/${id}.csv`)) {
     const order = fs.readFileSync(`orders/gen/${id}.csv`).toString().split("\n").map(l => l.split(','))
     if (order.filter(i => i[2]).length < 3) {
-      skipped++
+      skipped.push(order[1][0] + ' - ' + id)
       diff.push(order[1][2], order[1][1], 'ORDER WAS NOT PICKED')
     } else {
       diff.push(order[1][2], order[1][1])
@@ -27,6 +27,6 @@ orderIds.forEach(id => {
   }
   resultsByUser.push(diff.join(','))
 })
-console.log(skipped, ' Orders not filled yet')
+console.log(skipped, skipped.length, ' Orders not filled yet')
 fs.writeFileSync('orders/resultsByUser.csv', resultsByUser.join("\n"))
 fs.writeFileSync('orders/resultsByItm.csv', Object.entries(resultsByItm).map(a => a.join(',')).join("\n"))

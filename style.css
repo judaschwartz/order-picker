@@ -25,7 +25,6 @@ p {
 .prod-name {
   font-size: 30px;
   font-weight: bold;
-  white-space: nowrap;
   overflow: auto;
   max-width: 100%;
   margin: 0 0 5px;
@@ -261,4 +260,12 @@ div.qty-box, table .qty-box div {
 .picked.other-itms tr {
   cursor: pointer;
   height: 40px;
+}
+
+#p-name {
+  display: flex;
+}
+
+#p-name span {
+  padding: 15px;
 }
