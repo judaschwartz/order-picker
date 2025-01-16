@@ -48,7 +48,7 @@ async function printOrder(id, picker, order) {
     let  html = `<h1>Order #${id} for ${order[1][0]}</h1><h2>${order[1][3]} items, Picked by ${picker}</h2>`
     const headers = '<tr><th width="60px">ID</th><th>Item Name</th><th width="80px"># ordered</th></tr>'
     const next = order.slice(2).filter(r => Number(r[1])).map(r => `<tr><td>${r[3]}</td><td>${r[0]}</td><td>${r[1]}</td></tr>`)
-    html += `<table>${headers}${next.join('')}</table><style>${fs.readFileSync('./style-admin.css').toString()}</style>`
+    html += `<table>${headers}${next.join('')}</table><style>${fs.readFileSync('./www/style-admin.css').toString()}</style>`
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.setContent(html)
@@ -223,7 +223,7 @@ const server = createServer((req, res) => {
       'js': 'text/javascript',
     }[extname] || 'application/octet-stream'
 
-    fs.readFile(filePath, (error, content) => {
+    fs.readFile(`./www/${filePath}`, (error, content) => {
       if (error) {
         if (error.code === 'ENOENT') {
           res.writeHead(404, { 'Content-Type': 'text/html' })
