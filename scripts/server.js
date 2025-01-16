@@ -2,7 +2,7 @@ const { createServer } = require('http')
 const fs = require('fs')
 const { parse } = require('url')
 const { networkInterfaces } = require('os')
-const puppeteer = require('puppeteer')
+const { launch } = require('puppeteer')
 const { print } = require("unix-print")
 
 const path = 'orders/gen/'
@@ -54,15 +54,15 @@ const adminTable = (headers, data, name, col, id) => {
 
 async function printOrder(id, picker, order) {
   try {
-    let  html = `<h1>Order #${id} for ${order[1][0]}</h1><h2>${order[1][3]} items, Picked by ${picker}</h2>`
+    let html = `<h1>Order #${id} for ${order[1][0]}</h1><h2>${order[1][3]} items, Picked by ${picker}</h2>`
     const headers = '<tr><th width="60px">ID</th><th>Item Name</th><th width="80px"># ordered</th></tr>'
     const next = order.slice(2).filter(r => Number(r[1])).map(r => `<tr><td>${r[3]}</td><td>${r[0]}</td><td>${r[1]}</td></tr>`)
     html += `<table>${headers}${next.join('')}</table><style>${fs.readFileSync('./www/style-admin.css').toString()}</style>`
-    const browser = await puppeteer.launch()
+    const browser = await launch()
     const page = await browser.newPage()
     await page.setContent(html)
     const pdfPath = `./orders/printed/print-${id}.pdf`
-    await page.pdf({path: pdfPath, format: 'A4', printBackground: true, margin: {top: '2cm', right: '2cm', bottom: '2cm', left: '2cm'}})
+    await page.pdf({ path: pdfPath, format: 'A4', printBackground: true, margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' } })
     await browser.close()
     // await print(pdfPath)
     console.log(`Order #${id} printed successfully`)
@@ -301,5 +301,6 @@ const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat
 const PORT = 3000 // Choose a port (e.g., 3000)
 
 server.listen(PORT, LOCAL_IP, () => {
+  process.env.DEBUG && console.debug('Debugging is enabled')
   console.log(`Server is running. There are ${totalOrders} orders to pick\nAny device on this wifi network can access the application in their browser at:\nhttp://${LOCAL_IP}:${PORT}/`)
 })
