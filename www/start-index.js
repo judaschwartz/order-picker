@@ -1,3 +1,5 @@
+const url = new URL(location.href)
+const params = url.searchParams
 const loc = location.href.split("?")
 const orders = JSON.parse(`ORDERS`)
 const volunteers = JSON.parse(`VOLUNTEERS`)
@@ -41,5 +43,10 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('volunteer #' + vol + ' is not registered')
     }
   })
+  const pickerId = params.get('picker')?.split('# ')?.at(-1)?.slice(0, -1)
+  if (pickerId) {
+    document.getElementById('picker').value = pickerId
+    document.getElementById('picker').dispatchEvent(new Event('change', { bubbles: true }))
+  }
   window.history.replaceState(null, '', loc[0])
 })

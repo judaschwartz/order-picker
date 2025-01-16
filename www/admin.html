@@ -30,10 +30,9 @@
       }
     }
     window.onload = function () {
-      console.log('Refreshed at', new Date().toTimeString().slice(0, 8))
-      const params = url.searchParams;
-      ['prodId', 'itmAlert', 'remove'].forEach(param => params.delete(param))
-      window.history.replaceState(null, '', url.pathname + '?' + params.toString())
+      console.log('Refreshed at', new Date().toTimeString().slice(0, 8));
+      ['prodId', 'itmAlert', 'remove'].forEach(param => url.searchParams.delete(param))
+      window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
 
       document.querySelector('#alerts form').addEventListener('change', function() {
         clearInterval(autoRefresh)

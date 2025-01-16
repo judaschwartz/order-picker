@@ -23,9 +23,9 @@
 <script>
   const url = new URL(location.href)
   window.onload = function () {
-    const params = url.searchParams;
-    ['name', 'phone', 'email'].forEach(param => params.delete(param))
-    window.history.replaceState(null, '', url.pathname + '?' + params.toString())
+    if (url.searchParams.get('newId')) alert(`"${url.searchParams.get('name')}" has been assigned volunteer ID # ${url.searchParams.get('newId')}`);
+    ['name', 'phone', 'email', 'newId'].forEach(param => url.searchParams.delete(param))
+    window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
     document.querySelectorAll('.adminTable').forEach(divTable => {
       const divId = divTable.id
       divTable.querySelectorAll("tbody tr:first-child td").forEach(cell => {
@@ -47,6 +47,7 @@
     const phone = document.querySelector('input[name="phone"]').value.replace(/\D/g, '')
     const email = document.querySelector('input[name="email"]').value
     if (name.trim()) {
+      url.searchParams.set('newId', document.querySelectorAll('#volunteers tr').length)
       url.searchParams.set('name', name.trim())
       url.searchParams.set('phone', `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6, 10)}`)
       url.searchParams.set('email', email.trim().toLowerCase())

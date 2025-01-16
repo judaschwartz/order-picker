@@ -8,9 +8,18 @@ const { print } = require("unix-print")
 const path = 'orders/gen/'
 const pickLine = [[], [], []]
 const sides = ['left', 'right', 'noCar']
+if (!fs.existsSync('orders/orders.json')) {
+  return console.log('orders.json file not found you need to execute the "npm run init" command to create the orders')
+}
+if (!fs.existsSync('orders/completed-orders.csv')) {
+  fs.writeFileSync('orders/completed-orders.csv', 'name,orderId,picker,qty,start,end,minutes,side')
+}
+if (!fs.existsSync('orders/volunteers.csv')) {
+  fs.writeFileSync('orders/volunteers.csv', 'ID,Name,Phone,Email\n990,Admin,555-555-5555,')
+}
+const rawOrders = fs.readFileSync('orders/orders.json').toString()
 const prodAlerts = fs.existsSync('orders/alerts.json') ? JSON.parse(fs.readFileSync('orders/alerts.json').toString()) : {}
 const itmTotals = fs.existsSync('orders/itmTotals.json') ? JSON.parse(fs.readFileSync('orders/itmTotals.json').toString()) : {}
-const rawOrders = fs.readFileSync('orders/orders.json').toString()
 const ordersJson = JSON.parse(rawOrders)
 const volunteers = fs.readFileSync('orders/volunteers.csv').toString().split("\n").map(l => l.split(','))
 let rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
@@ -162,13 +171,13 @@ const server = createServer((req, res) => {
           const klass = ordered !== got ? ' class="discrepancy"' : ''
           return ordered || got ? `<tr${klass} onclick="window.location='/?user=${user}&itm=${i + 1}';"><td>${r[3]}</td><td>${r[0]}</td><td>${ordered}</td><td>${got}</td></tr>` : ''
         }).filter(Boolean)
-        var next = order[1][2] || ''
+        var next = order[1][2] ? `${volunteersJson[order[1][2].split(':').at(-1)]} (# ${order[1][2].split(':').at(-1)})` : ''
         let headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
         if (query.api) { // api pick
           filePath = './api.html'
         } else if (itm === -1 || lastItm === order.length - 2) { // all items have been picked
           itm = order.length - 1
-          console.info(`Picker ${volunteersJson[next.split(':').at(-1)]} (#${next}) on confirmation page for order #${user}`)
+          console.info(`Picker ${next} on confirmation page for order #${user}`)
           warn += done.length ? '' : 'This order has no items to pick'
           warn += order[order.length - 1][1] === 'Yes' ? '<br><b>PICKUP PRODUCE PACKAGE</b>' : ''
           done = `<table>${headers}${done.join('')}</table>`
@@ -203,12 +212,12 @@ const server = createServer((req, res) => {
         }
         filePath = './admin.html'
       } else if (filePath.startsWith('./vol')) {
-        if (query.name) {
-          console.log('adding volunteer ', query.name, ' with id ', volunteers.length)
-          volunteers.push([volunteers.length, query.name, query.phone, query.email])
+        if (query.newId && query.name) {
+          console.log('adding volunteer ', query.name, ' with id ', query.newId)
+          volunteers.push([query.newId, query.name.replace(/,/g, ' '), query.phone, query.email])
           rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
           volunteersJson = JSON.parse(`{${rawVolunteers}}`)
-          fs.appendFileSync('./orders/volunteers.csv', `\n${volunteers.slice(-1).join(',')}`)
+          fs.appendFileSync('./orders/volunteers.csv', `\n${volunteers.at(-1).join(',')}`)
         }
         filePath = './volunteers.html'
       }
@@ -267,13 +276,13 @@ const server = createServer((req, res) => {
               content += adminTable(orders[0], orders.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'end', 'orders')
               content += adminTable(['ID','name','qtyPicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
               const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
-              content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, 'orderID', 'waiting')
+              content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
             } catch (e) {
               content += 'THERE WAS AN ERROR RENDERING THE ADMIN PAGE<br>' + e.stack.replaceAll('\n', '<br>')
             }
           } else if (filePath.startsWith('./volunteers.html')) {
             try {
-              content += adminTable(volunteers[0], volunteers.slice(2), 'Registered Volunteers', query.volunteers || 'ID', 'volunteers')
+              content += adminTable(volunteers[0], volunteers.slice(2), 'Registered Volunteers', query.volunteers || 'A-ID', 'volunteers')
             } catch (e) {
               content += 'THERE WAS AN ERROR RENDERING THE VOLUNTEERS PAGE<br>' + e.stack.replaceAll('\n', '<br>')
             }
@@ -286,13 +295,6 @@ const server = createServer((req, res) => {
     })
   }
 })
-
-if (!fs.existsSync('orders/completed-orders.csv')) {
-  fs.writeFileSync('orders/completed-orders.csv', 'name,orderId,picker,qty,start,end,minutes,side')
-}
-if (!fs.existsSync('orders/volunteers.csv')) {
-  fs.writeFileSync('orders/volunteers.csv', 'ID,Name,Phone,Email\n999,Admin,555-555-5555,')
-}
 
 // Use the local IP obtained from ifconfig
 const LOCAL_IP = process.env.LOCAL_IP || Object.values(networkInterfaces()).flat().find(({ family, internal, address }) => family === "IPv4" && !internal && address.startsWith('192.168.')).address
