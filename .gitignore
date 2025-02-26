@@ -1,8 +1,4 @@
 .history
-orders/gen/*.csv
-orders/*.json
-orders/*.csv
-orders/old
-orders/printed/*.pdf
+orders/*
 .DS_Store
 node_modules
