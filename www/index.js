@@ -3,7 +3,6 @@ const user = loc.find(u => u.includes('user'))?.split('=')?.[1];
 function validateForm(event) {
   const qty = parseInt(document.getElementById('qty').value || 0)
   document.getElementById('qty').value = qty
-  document.getElementById('comment').value = document.getElementById('comment').value.replace(/,/g, ' ').replace(/[\n\r]/g, '&#010;')
   const excepted = parseInt(document.getElementById('excepted').innerText || 0)
   if (qty < excepted) {
     if (!confirm(`Received ${qty} but they ordered ${excepted}.\nPress OK if you still want to continue to the next item.`)) {

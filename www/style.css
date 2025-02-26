@@ -232,6 +232,13 @@ div.qty-box, table .qty-box div {
   font-weight: bold;
   font-size: 40px;
   padding: 2px;
+  text-align: left;
+}
+
+#start-page form b {
+  float: left;
+  font-size: 40px;
+  margin: 3px 0;
 }
 
 #start-page label {

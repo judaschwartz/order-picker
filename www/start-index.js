@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('name').value = ''
     }
   })
+  document.querySelector('#user').insertAdjacentHTML('beforeBegin', '<b>PREFIX-</b>')
   document.querySelector('#picker').addEventListener('change', function () {
     const vol = parseInt(this.value.trim())
     if (volunteers[vol]) {

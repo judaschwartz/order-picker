@@ -1,4 +1,7 @@
 const fs = require('fs')
+const today = new Date().toLocaleDateString().split('/')
+const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
+const path = `orders/${orderIdPrefix}/`
 const orderIds = Object.keys(JSON.parse(fs.readFileSync('./orders/orders.json').toString()))
 const resultsByUser = ['Order #, Picker, Comments, Missing items']
 const resultsByItm = {}
@@ -28,5 +31,5 @@ orderIds.forEach(id => {
   resultsByUser.push(diff.join(','))
 })
 console.log(skipped, skipped.length, ' Orders not filled yet')
-fs.writeFileSync('orders/resultsByUser.csv', resultsByUser.join("\n"))
-fs.writeFileSync('orders/resultsByItm.csv', Object.entries(resultsByItm).map(a => a.join(',')).join("\n"))
+fs.writeFileSync(`${path}resultsByUser.csv`, resultsByUser.join("\n"))
+fs.writeFileSync(`${path}resultsByItm.csv`, Object.entries(resultsByItm).map(a => a.join(',')).join("\n"))
