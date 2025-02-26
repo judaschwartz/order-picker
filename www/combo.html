@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>combo</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h2>Combine Orders</h2>
+  <form>
+    <input type="number" id="id1" name="id1" />
+    <input type="number" id="id2" name="id2" />
+    <button type="submit">Combine Orders</button>
+  </form><br><br>
+  <script>
+    const url = new URL(location.href)
+    window.onload = function () {
+      window.history.replaceState(null, '', url.pathname)
+    }
+  </script>
