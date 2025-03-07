@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>combo</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h2>Print an Order</h2>
+  <form>
+    <input style="font-size: 50px; width: 200px;" type="number" id="printId" name="printId" />
+    <br><br><br><button style="font-size: 40px; padding: 20px;" type="submit">Print Order</button>
+  </form><br><br>
+  <script>
+    const url = new URL(location.href)
+    window.onload = function () {
+      window.history.replaceState(null, '', url.pathname)
+    }
+  </script>

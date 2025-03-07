@@ -17,9 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
   if (loc.some((f) => f.includes('picker'))) {
     window.history.replaceState(null, '', loc.slice(0, -4).join("&"))
   }
-  // if (loc.some((f) => f.includes('showAll'))) {
-  //   document.getElementById('showAll').checked = true
-  // }
   [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
 })
 

@@ -32,25 +32,33 @@ let rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',
 let volunteersJson = JSON.parse(`{${rawVolunteers}}`)
 
 function combineOrders (id1, id2) {
-  const ord1 = fs.readFileSync(`${path}gen/${id1}.csv`).toString().split('\n').map(l => l.split(',').map(c => c.trim()))
-  const ord2 = fs.readFileSync(`${path}gen/${id2}.csv`).toString().split('\n').map(l => l.split(',').map(c => c.trim()))
-  const newOrder = ord1.slice(2).map((l, i) => {
-    const ordered = (Number(l[1]) || 0) + (Number(ord2[i + 2][1]) || 0)
-    const picked = (Number(l[2]) || 0) + (Number(ord2[i + 2][2]) || 0)
-    if (l[1]  === 'YES' || ord2[i + 2][1]   === 'YES') return [l[0], 'YES', , l[3], l[4]]
-    return [l[0], ordered, picked, l[3], l[4]]
-  })
-  const ttl = Number(ord1[1][3]) + Number(ord2[1][3])
-  const name = `${ord1[1][0]} & ${ord2[1][0]}`.trim()
-  fs.writeFileSync(`${path}gen/${id1}${id2}.csv`, [ord1[0], [name,,,ttl,], ...newOrder, []].map(l => l.join(',')).join("\n"))
-  delete ordersJson[id1]
-  delete ordersJson[id2]
-  ordersJson[`${id1}${id2}`] = name
-  rawOrders = JSON.stringify(ordersJson, null, 2)
-  fs.writeFileSync(`${path}orders.json`, rawOrders)
-  //rename the old files
-  fs.renameSync(`${path}gen/${id1}.csv`, `${path}gen/${id1}-combo.csv`)
-  fs.renameSync(`${path}gen/${id2}.csv`, `${path}gen/${id2}-combo.csv`)
+  try {
+    const ord1 = readOrderFile(id1)
+    const ord2 = readOrderFile(id2) 
+    if (!ord1 || !ord2) return console.error('could not find orders to combine')
+    const newOrder = ord1.slice(2).map((l, i) => {
+      const ordered = (Number(l[1]) || 0) + (Number(ord2[i + 2]?.[1]) || 0)
+      const picked = (Number(l[2]) || 0) + (Number(ord2[i + 2]?.[2]) || 0)
+      if (l[1]  === 'YES' || ord2[i + 2]?.[1] === 'YES') return [l[0], 'YES', , l[3], l[4]]
+      return [l[0], ordered, picked, l[3], l[4]]
+    })
+    const ttl = Number(ord1[1][3]) + Number(ord2[1][3])
+    const name = `${ord1[1][0]} & ${ord2[1][0]}`.trim()
+    const newId = id1 + id2.padStart(3, '0')
+    fs.writeFileSync(`${path}gen/${newId}.csv`, [ord1[0], [name,,,ttl,], ...newOrder, []].map(l => l.join(',')).join("\n"))
+    delete ordersJson[id1]
+    delete ordersJson[id2]
+    ordersJson[newId] = name
+    rawOrders = JSON.stringify(ordersJson, null, 2)
+    fs.writeFileSync(`${path}orders.json`, rawOrders)
+    fs.renameSync(`${path}gen/${id1}.csv`, `${path}gen/${id1}-combo.csv`)
+    fs.renameSync(`${path}gen/${id2}.csv`, `${path}gen/${id2.padStart(3, '0')}-combo.csv`)
+    console.log(`combined orders ${id1} and ${id2} new order ID is ${newId}`)
+    return `combined orders ${id1} and ${id2} new order ID is ${newId}`
+  } catch (error) {
+    console.error('error combining orders', error)
+    return 'error combining orders'
+  }
 }
 
 function pickDuration (completed, side) {
@@ -78,21 +86,32 @@ function adminTable (headers, data, name, col, id) {
   return `<div class="adminTable" id="${id}"><h2>${name}</h2><table><tr><td>${data}</td></tr></table></div>`
 }
 
-const printOrder = async (id, order, time = new Date().toLocaleTimeString()) => {
+function readOrderFile (id) {
   try {
-    const picker = `${volunteersJson[order[1][2].split(':').at(-1)]} (# ${order[1][2].split(':').at(-1)})`
+    return fs.readFileSync(`${path}gen/${id}.csv`).toString().split('\n').map(l => l.split(',').map(c => c.trim()))
+  } catch (error) { console.error(`Error reading order file ${id}:`, error) }
+}
+
+async function printOrder (id, order, time) {
+  try {
+    if (id.length > 3) {
+      console.log(`${id} is a combo order printing original septate orders`)
+      printOrder(id.slice(0, -3), readOrderFile(`${id.slice(0, -3)}-combo`), time)
+      printOrder(id.slice(-3), readOrderFile(`${id.slice(-3)}-combo`), time)
+    }
     const picked = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty picked</th></tr>']
     const missing = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty missing</th></tr>']
     let ttl = Number(order[1][3])
     order.slice(2).forEach(r => {
       const missed = (Number(r[1]) || 0) - (Number(r[2]) || 0)
-      if (r[2]) picked.push(`<tr><td>${r[3]}</td><td>${r[0]}</td><td>${r[2]}</td></tr>`)
+      if (Number(r[2])) picked.push(`<tr><td>${r[3]}</td><td>${r[0]}</td><td>${r[2]}</td></tr>`)
       if (missed) {
         missing.push(`<tr><td>${r[3]}</td><td>${r[0]}</td><td>${missed}</td></tr>`)
         ttl -= missed
       }
     })
-    let html = `<h2>Order ${orderIdPrefix}-${id} for ${order[1][0]}</h2><h4>${ttl} items, Picked by ${picker} ${time}</h4>`
+    const pickerId = order[1][2].split(':').at(-1) || '990'
+    let html = `<h2>Order ${orderIdPrefix}-${id} for ${order[1][0]}</h2><h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId}) ${time}</h4>`
     html += order[order.length - 1][1] === 'YES' ? '<div class="alert"><div>&#9888;</div><p>This order includes a produce package.<br>Please proceed to the station which will be to your right when you exit the building</p></div>' : ''
     html += `<table>${picked.join('')}</table>`
     if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
@@ -126,12 +145,12 @@ const server = createServer((req, res) => {
           warn = `could not find a record for order #${user}`
         }
         if (query.lastUser) { // lastUser is the last order that was picked
-          const order = fs.readFileSync(`${path}gen/${query.lastUser}.csv`).toString().split('\n').map(l => l.split(',').map(c => c.trim()))
+          const order = readOrderFile(query.lastUser)
           if (typeof comment !== 'undefined' && comment !== order[1][1]) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             fs.writeFileSync(`${path}gen/${query.lastUser}.csv`, order.map(l => l.join(',')).join('\n'))
           }
-          printOrder(query.lastUser, order)
+          printOrder(query.lastUser, order, new Date().toLocaleTimeString())
           const side = pickLine.findIndex(s => s.some(c => c[1] === query.lastUser))
           if (side > -1) {
             const completed = pickLine[side].splice(pickLine[side].findIndex(c => c[1] === query.lastUser), 1)[0]
@@ -146,7 +165,7 @@ const server = createServer((req, res) => {
           const side = pickLine.findIndex(s => s.some(c => c[1] === query.deleteUser))
           if (side > -1) {
             pickLine[side].splice(pickLine[side].findIndex(c => c[1] === query.deleteUser), 1)
-            const order = fs.readFileSync(`${path}gen/${query.deleteUser}.csv`).toString().split('\n').map(l => l.split(',').map(c => c.trim()))
+            const order = readOrderFile(query.deleteUser)
             order[1][2] = order[1][2].split(':').slice(0, -1).join(':')
             fs.writeFileSync(`${path}pickLines.csv`, pickLine.map(l => l.join('\n')).join('\n\n'))
             fs.writeFileSync(`${path}gen/${query.deleteUser}.csv`, order.map(l => l.join(',')).join('\n'))
@@ -155,7 +174,7 @@ const server = createServer((req, res) => {
         }
       } else if (filePath === './') {
         filePath = './index.html'
-        const order = fs.readFileSync(`${path}gen/${user}.csv`).toString().split('\n').map(l => l.split(',').map(c => c.trim()))
+        const order = readOrderFile(user)
         var userName = order[1][0]
         let lastItm = Number(query.itm) || 1
         let changed = false
@@ -164,7 +183,7 @@ const server = createServer((req, res) => {
           const picker = `${volunteersJson[query.picker]} (#${query.picker})`
           console.info(`${picker} started picking order #${user}`)
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
-          warn += order[1][3] > 35 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
+          warn += order[1][3] > 50 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
           changed = true
           if (order[1][2]) {
             order[1][2] += `:${query.picker}`
@@ -204,7 +223,7 @@ const server = createServer((req, res) => {
         if (order[1][2].includes(':')) {
           warn += 'THIS ORDER HAS BEEN <small>(at least partially) </small>PICKED<br><small>the quantity received box includes the number already picked last time</small><br>'
         }
-        var itm = query.showAll ? 0 : order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
+        var itm = order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
         if (qty === 998) lastItm = order.length - 2
         var done = order.slice(2, lastItm +1).map((r, i) => {
           const ordered = Number(r[1]) || 0
@@ -285,7 +304,7 @@ const server = createServer((req, res) => {
       } else {
         let cache = extname === 'html' ? 'no-store' : 'public, max-age=3153600'
         try {
-          content = content.toString().replace('WARN', warn)
+          content = content.toString().replace('WARNN', warn)
           if (filePath === './index.html' || filePath === './end-index.html') {
             content = content.replace(/USER|DONE_LIST|NEXT_LIST|CMT|QTY|FILLED|ITM|SLOT|SIDE|ULAST|NAME/g, (matched) => {
               switch(matched){
@@ -323,11 +342,14 @@ const server = createServer((req, res) => {
             }
           } else if (filePath.startsWith('./combo')) {
             if (query.id1 && query.id2) {
-              combineOrders(Math.min(query.id1, query.id2), Math.max(query.id1, query.id2))
-              console.log(`combined orders ${query.id1} and ${query.id2}`)
-              content += `combined orders ${query.id1} and ${query.id2} new order ID is ${Math.min(query.id1, query.id2)}${Math.max(query.id1, query.id2)}`
+              content += combineOrders(Math.min(query.id1, query.id2).toString(), Math.max(query.id1, query.id2).toString())
             }
-          } else if (filePath.startsWith('./volunteers.html')) {
+          } else if (filePath === './print.html') {
+            if (query.printId) {
+              printOrder(query.printId, readOrderFile(query.printId), 'manual print')
+              content += `attempting to print order # ${query.printId}`
+            }
+          } else if (filePath === './volunteers.html') {
             try {
               content += adminTable(volunteers[0], volunteers.slice(2), 'Registered Volunteers', query.volunteers || 'A-ID', 'volunteers')
             } catch (e) {

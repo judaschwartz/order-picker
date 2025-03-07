@@ -204,18 +204,6 @@ div.qty-box, table .qty-box div {
   font-weight: normal;
 }
 
-#showAll {
-  float: left;
-  margin: -28px 0 0;
-  height: 25px;
-  width: 25px;
-}
-
-.show-label {
-  text-align: left;
-  margin: 10px 0 5px 35px;
-}
-
 #start-page {
   text-transform: uppercase;
 }
