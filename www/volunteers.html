@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>volunteers</title>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="style-admin.css">
-</head>
-<body>
 <div class="admin-form" id="register">
   <h2>Volunteer Sign up</h2>
   <form>
@@ -21,27 +11,12 @@
   </form>
 </div>
 <script>
-  const url = new URL(location.href)
-  window.onload = function () {
-    if (url.searchParams.get('newId')) alert(`"${url.searchParams.get('name')}" has been assigned volunteer ID # ${url.searchParams.get('newId')}`);
+  window.addEventListener('load', function() {
+    clearInterval(autoRefresh)
+    document.querySelector('#auto-reload').checked = false;
     ['name', 'phone', 'email', 'newId'].forEach(param => url.searchParams.delete(param))
     window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
-    document.querySelectorAll('.adminTable').forEach(divTable => {
-      const divId = divTable.id
-      divTable.querySelectorAll("tbody tr:first-child td").forEach(cell => {
-        cell.addEventListener("click", (event) => {
-          const cellText = event.target.textContent.toLowerCase()
-          const url = new URL(window.location)
-          if (url.searchParams.get(divId) === cellText) {
-            url.searchParams.set(divId, `A-${cellText}`)
-          } else {
-            url.searchParams.set(divId, cellText)
-          }
-          window.location.href = url.href
-        })
-      })
-    })
-  }
+  })
   function addVol() {
     const name = document.querySelector('input[name="name"]').value
     const phone = document.querySelector('input[name="phone"]').value.replace(/\D/g, '')

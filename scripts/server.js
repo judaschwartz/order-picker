@@ -260,26 +260,7 @@ const server = createServer((req, res) => {
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
       } else if (filePath.startsWith('./admin')) {
-        if (query.remove) {
-          delete prodAlerts[query.remove]
-          console.log('removed alert for', query.remove)
-          fs.writeFileSync(`${path}alerts.json`, JSON.stringify(prodAlerts, null, 2))
-        }
-        if (query.prodId && query.itmAlert) {
-          prodAlerts[query.prodId] = query.itmAlert
-          console.log('added alert for', query.prodId)
-          fs.writeFileSync(`${path}alerts.json`, JSON.stringify(prodAlerts, null, 2))
-        }
         filePath = './admin.html'
-      } else if (filePath.startsWith('./vol')) {
-        if (query.newId && query.name) {
-          console.log('adding volunteer ', query.name, ' with id ', query.newId)
-          volunteers.push([query.newId, query.name.replace(/,/g, ' '), query.phone, query.email])
-          rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
-          volunteersJson = JSON.parse(`{${rawVolunteers}}`)
-          fs.appendFileSync(`${path}volunteers.csv`, `\n${volunteers.at(-1).join(',')}`)
-        }
-        filePath = './volunteers.html'
       }
     } catch (error) {
       warn = error.stack.replaceAll('\n', '<br>')
@@ -327,33 +308,60 @@ const server = createServer((req, res) => {
             content = content.replace('ORDERS', rawOrders).replace('VOLUNTEERS', `{${rawVolunteers}}`).replace('PREFIX', orderIdPrefix)
           } else if (filePath.startsWith('./admin.html')) {
             try {
-              content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
-              content += adminTable(['name','orderId','picker','qty','start'], pickLine[1], 'Right Side:', query.right || 'start', 'right')
-              content += adminTable(['name','orderId','picker','qty','start'], pickLine[0], 'Left Side:', query.left || 'start', 'left')
-              content += adminTable(['name','orderId','picker','qty','start'], pickLine[2], 'No car:', query.noCar || 'start', 'noCar')
-              const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
-              const unqIds = [...new Set(completed.map(o => o[1]))]
-              content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'end', 'orders')
-              content += adminTable(['ID','name','qtyPicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
-              const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
-              content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
+              if (query.page?.startsWith('alert')) {
+                content += fs.readFileSync('./www/alerts.html').toString()
+                if (query.remove) {
+                  delete prodAlerts[query.remove]
+                  content += `removed alert for ${query.remove}`
+                  console.log('removed alert for', query.remove)
+                  fs.writeFileSync(`${path}alerts.json`, JSON.stringify(prodAlerts, null, 2))
+                }
+                if (query.prodId && query.itmAlert) {
+                  prodAlerts[query.prodId] = query.itmAlert
+                  content += `added alert for ${query.prodId}`
+                  console.log('added alert for', query.prodId)
+                  fs.writeFileSync(`${path}alerts.json`, JSON.stringify(prodAlerts, null, 2))
+                }
+                content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
+              } else if (query.page?.startsWith('car')) {
+                content += adminTable(['name','orderId','picker','qty','start'], pickLine[1], 'Right Side:', query.right || 'start', 'right')
+                content += adminTable(['name','orderId','picker','qty','start'], pickLine[0], 'Left Side:', query.left || 'start', 'left')
+                content += adminTable(['name','orderId','picker','qty','start'], pickLine[2], 'No car:', query.noCar || 'start', 'noCar')
+              } else if (query.page?.startsWith('order')) {
+                const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
+                const unqIds = [...new Set(completed.map(o => o[1]))]
+                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'end', 'orders')
+                const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
+                content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
+              } else if (query.page?.startsWith('item')) {
+                content += adminTable(['ID','name','qtyPicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
+              } else if (query.page?.startsWith('vol')) {
+                content += fs.readFileSync('./www/volunteers.html').toString()
+                if (query.newId && query.name) {
+                  console.log('adding volunteer ', query.name, ' with id ', query.newId)
+                  volunteers.push([query.newId, query.name.replace(/,/g, ' '), query.phone, query.email])
+                  rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
+                  volunteersJson = JSON.parse(`{${rawVolunteers}}`)
+                  fs.appendFileSync(`${path}volunteers.csv`, `\n${volunteers.at(-1).join(',')}`)
+                  content += `added volunteer ${query.name} with ID ${query.newId}`
+                }
+                content += adminTable(volunteers[0], volunteers.slice(2), 'Registered Volunteers', query.volunteers || 'A-ID', 'volunteers')
+              } else if (query.page?.startsWith('combo')) {
+                content += fs.readFileSync('./www/combo.html').toString()
+                if (query.id1 && query.id2) {
+                  content += combineOrders(Math.min(query.id1, query.id2).toString(), Math.max(query.id1, query.id2).toString())
+                }
+              } else if (query.page?.startsWith('print')) {
+                content += fs.readFileSync('./www/print.html').toString()
+                if (query.printId) {
+                  printOrder(query.printId, readOrderFile(query.printId), 'manual print')
+                  content += `attempting to print order # ${query.printId}`
+                }
+              } else {
+                content = content.replace('class="menu"', 'class="menu active"')
+              }
             } catch (e) {
-              content += 'THERE WAS AN ERROR RENDERING THE ADMIN PAGE<br>' + e.stack.replaceAll('\n', '<br>')
-            }
-          } else if (filePath.startsWith('./combo')) {
-            if (query.id1 && query.id2) {
-              content += combineOrders(Math.min(query.id1, query.id2).toString(), Math.max(query.id1, query.id2).toString())
-            }
-          } else if (filePath === './print.html') {
-            if (query.printId) {
-              printOrder(query.printId, readOrderFile(query.printId), 'manual print')
-              content += `attempting to print order # ${query.printId}`
-            }
-          } else if (filePath === './volunteers.html') {
-            try {
-              content += adminTable(volunteers[0], volunteers.slice(2), 'Registered Volunteers', query.volunteers || 'A-ID', 'volunteers')
-            } catch (e) {
-              content += 'THERE WAS AN ERROR RENDERING THE VOLUNTEERS PAGE<br>' + e.stack.replaceAll('\n', '<br>')
+              content += `THERE WAS AN ERROR RENDERING ADMIN PAGE ${query.page}<br>` + e.stack.replaceAll('\n', '<br>')
             }
           }
         } catch (err) {

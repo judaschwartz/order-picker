@@ -8,16 +8,19 @@
   <link rel="stylesheet" href="style-admin.css">
 </head>
 <body>
-  <input type="checkbox" id="auto-reload" onclick="toggleRefresh()" checked>Auto Refresh Page
-  <div class="admin-form" id="alerts">
-    <h2>Product Alerts</h2>
-    <form>
-      <input type="text" name="prodId" placeholder="ID" />
-      <textarea name="itmAlert" placeholder="Alert Message">Out of stock</textarea>
-      <button type="button" onclick="addProdAlert(false)">Add Info</button>
-      <button type="button" onclick="addProdAlert(true)">Add Alert</button>
-    </form>
-  </div>
+  <header>
+    <div class="burger" onclick="document.querySelector('.menu').classList.toggle('active')">&#9776;</div>
+    <label><input type="checkbox" id="auto-reload" onclick="toggleRefresh()" checked>Auto Refresh Page</label>
+    <ul class="menu">
+      <li onclick="page('volunteers')">Volunteers</li>
+      <li onclick="page('cars')">Orders in progress</li>
+      <li onclick="page('orders')">All orders</li>
+      <li onclick="page('items')">Items Picked</li>
+      <li onclick="page('alerts')">Product Alerts</li>
+      <li onclick="page('combo')">Combine two orders</li>
+      <li onclick="page('print')">Print an order</li>
+    </ul>
+  </header>
   <script>
     const url = new URL(location.href)
     const autoRefresh = setInterval(() => {window.location.reload()}, (60 * 1000))
@@ -29,21 +32,8 @@
         window.location.reload()
       }
     }
-    window.onload = function () {
-      console.log('Refreshed at', new Date().toTimeString().slice(0, 8));
-      ['prodId', 'itmAlert', 'remove'].forEach(param => url.searchParams.delete(param))
-      window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
-
-      document.querySelector('#alerts form').addEventListener('change', function() {
-        clearInterval(autoRefresh)
-        document.querySelector('#auto-reload').checked = false
-      })
-      document.querySelectorAll('#alerts tr:not(:first-child) td:first-child').forEach(e => {
-        e.onclick = () => {
-          url.searchParams.set('remove', e.nextSibling.innerText)
-          window.location.href = url.href
-        }
-      })
+    window.addEventListener('load', function() {
+      console.log('Refreshed at', new Date().toTimeString().slice(0, 8))
       document.querySelectorAll('.adminTable').forEach(divTable => {
         const divId = divTable.id
         divTable.querySelectorAll("tbody tr:first-child td").forEach(cell => {
@@ -59,7 +49,7 @@
           })
         })
       })
-    }
+    })
     function addProdAlert(popup) {
       const prodId = document.querySelector('input[name="prodId"]').value
       const itmAlert = document.querySelector('textarea[name="itmAlert"]').value
@@ -68,5 +58,9 @@
         url.searchParams.set('itmAlert', itmAlert)
         window.location.href = url.href
       }
+    }
+    function page(page) {
+      url.searchParams.set('page', page)
+      window.location.href = url.href
     }
   </script>

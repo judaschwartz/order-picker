@@ -1,24 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>combo</title>
-  <meta charset="UTF-8">
-</head>
-<body>
-  <h2>Combine Orders</h2>
-  <small>New order id will include the old order IDs eg: "111" and "222" will become "111222"<br>
-    <b>ALERT: Once the orders are combined it is irreversible</b> and you will no longer be able to pick the old orders separately</small>
-  <p>Enter the IDs of the orders you want to combine: </p>
-  <form>
-    <input style="font-size: 40px; width: 150px;" type="number" id="id1" name="id1" /><br><br>
-    <input style="font-size: 40px; width: 150px;" type="number" id="id2" name="id2" /><br><br>
-    <button style="font-size: 40px; padding: 20px;" type="submit">Combine Orders</button>
-  </form><br><br>
-  <script>
-    const url = new URL(location.href)
-    window.onload = function () {
-      window.history.replaceState(null, '', url.pathname)
+<h2>Combine Orders</h2>
+<small>New order id will include the old order IDs eg: "111" and "222" will become "111222"<br>
+  <b>ALERT: Once the orders are combined it is irreversible</b> and you will no longer be able to pick the old orders separately</small>
+<p>Enter the IDs of the orders you want to combine: </p>
+<form>
+  <input style="font-size: 40px; width: 150px;" type="number" id="id1" name="id1" /><br><br>
+  <input style="font-size: 40px; width: 150px;" type="number" id="id2" name="id2" /><br><br>
+  <button style="font-size: 40px; padding: 20px;" type="button" onclick="combo()">Combine Orders</button>
+</form><br><br>
+<script>
+  window.addEventListener('load', function() {
+    clearInterval(autoRefresh)
+    document.querySelector('#auto-reload').checked = false
+    url.searchParams.delete('id1')
+    url.searchParams.delete('id2')
+    window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
+  })
+  function combo() {
+    const id1 = document.querySelector('input[name="id1"]').value.replace(/\D/g, '')
+    const id2 = document.querySelector('input[name="id2"]').value.replace(/\D/g, '')
+    if (!id1.trim() || !id2.trim()) {
+      alert('Please enter both order IDs')
+    } else {
+      url.searchParams.set('id1', id1)
+      url.searchParams.set('id2', id2)
+      window.location.href = url.href
     }
-  </script>
+  }
+</script>
