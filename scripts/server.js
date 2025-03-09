@@ -259,8 +259,6 @@ const server = createServer((req, res) => {
         side = order[itm][4] ? 'side' : ''
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
-      } else if (filePath.startsWith('./admin')) {
-        filePath = './admin.html'
       }
     } catch (error) {
       warn = error.stack.replaceAll('\n', '<br>')
@@ -306,7 +304,7 @@ const server = createServer((req, res) => {
           } else if (filePath === './start-index.js') {
             cache = 'no-store'
             content = content.replace('ORDERS', rawOrders).replace('VOLUNTEERS', `{${rawVolunteers}}`).replace('PREFIX', orderIdPrefix)
-          } else if (filePath.startsWith('./admin.html')) {
+          } else if (filePath === './kadmin.html') {
             try {
               if (query.page?.startsWith('alert')) {
                 content += fs.readFileSync('./www/alerts.html').toString()
