@@ -16,11 +16,12 @@ if (!fs.existsSync(`${path}completed-orders.csv`)) {
   fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,side')
 }
 if (!fs.existsSync(`${path}volunteers.csv`)) {
-  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email\n990,Admin,555-555-5555,')
+  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Own,Start,End\n998,Admin,,,,,')
 }
 if (!fs.existsSync(`${path}pickLines.csv`)) {
   fs.writeFileSync(`${path}pickLines.csv`, '\n\n\n\n')
 }
+if (!fs.existsSync(`${path}printed`)) {fs.mkdirSync(`${path}printed`)}
 let rawOrders = fs.readFileSync(`${path}orders.json`).toString()
 const pickLine = fs.readFileSync(`${path}pickLines.csv`).toString().split('\n\n').map(l => l ? l.split('\n').map(l => l.split(',')) : [])
 const prodAlerts = fs.existsSync(`${path}alerts.json`) ? JSON.parse(fs.readFileSync(`${path}alerts.json`).toString()) : {}
@@ -44,17 +45,17 @@ function combineOrders (id1, id2) {
     })
     const ttl = Number(ord1[1][3]) + Number(ord2[1][3])
     const name = `${ord1[1][0]} & ${ord2[1][0]}`.trim()
-    const newId = id1 + id2.padStart(3, '0')
-    fs.writeFileSync(`${path}gen/${newId}.csv`, [ord1[0], [name,,,ttl,], ...newOrder, []].map(l => l.join(',')).join("\n"))
+    const comboId = id1 + id2.padStart(3, '0')
+    fs.writeFileSync(`${path}gen/${comboId}.csv`, [ord1[0], [name,,,ttl,], ...newOrder, []].map(l => l.join(',')).join("\n"))
     delete ordersJson[id1]
     delete ordersJson[id2]
-    ordersJson[newId] = name
+    ordersJson[comboId] = name
     rawOrders = JSON.stringify(ordersJson, null, 2)
     fs.writeFileSync(`${path}orders.json`, rawOrders)
     fs.renameSync(`${path}gen/${id1}.csv`, `${path}gen/${id1}-combo.csv`)
     fs.renameSync(`${path}gen/${id2}.csv`, `${path}gen/${id2.padStart(3, '0')}-combo.csv`)
-    console.log(`combined orders ${id1} and ${id2} new order ID is ${newId}`)
-    return `combined orders ${id1} and ${id2} new order ID is ${newId}`
+    console.log(`combined orders ${id1} and ${id2} new order ID is ${comboId}`)
+    return `combined orders ${id1} and ${id2} new order ID is ${comboId}`
   } catch (error) {
     console.error('error combining orders', error)
     return 'error combining orders'
@@ -120,7 +121,7 @@ async function printOrder (id, order, time) {
     const browser = await launch()
     const page = await browser.newPage()
     await page.setContent(html)
-    const pdfPath = `${path}printed/print-${id}.pdf`
+    const pdfPath = `${path}printed/print-${id}-${time.replaceAll(':', '_')}.pdf`
     await page.pdf({ path: pdfPath, format: 'A4', printBackground: true, margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' } })
     await browser.close()
     // await print(pdfPath)
@@ -193,8 +194,12 @@ const server = createServer((req, res) => {
           } else {
             order[1][2] = query.picker
           }
-          pickLine[query.side].push([ordersJson[String(user)], user, query.picker, order[1][3], new Date().toTimeString().slice(0, 8)])
-          fs.writeFileSync(`${path}pickLines.csv`, pickLine.map(l => l.join('\n')).join('\n\n'))
+          if (pickLine.flat(1).map(o => o[1]).includes(String(user))) {
+            console.error(`order #${user} is already in the picking line`)
+          } else {
+            pickLine[query.side].push([ordersJson[String(user)], user, query.picker, order[1][3], new Date().toTimeString().slice(0, 8)])
+            fs.writeFileSync(`${path}pickLines.csv`, pickLine.map(l => l.join('\n')).join('\n\n'))
+          }
         }
         if (typeof comment !== 'undefined' && comment !== order[1][1]) {
           changed = true
@@ -335,15 +340,28 @@ const server = createServer((req, res) => {
                 content += adminTable(['ID','name','qtyPicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
               } else if (query.page?.startsWith('vol')) {
                 content += fs.readFileSync('./www/volunteers.html').toString()
-                if (query.newId && query.name) {
-                  console.log('adding volunteer ', query.name, ' with id ', query.newId)
-                  volunteers.push([query.newId, query.name.replace(/,/g, ' '), query.phone, query.email])
+                if (query.name) {
+                  console.log('adding volunteer ', query.name, ' with id ', volunteers.length)
+                  volunteers.push([volunteers.length, query.name.replace(/,/g, ' '), query.phone, query.email, query.hasOrder, new Date().toTimeString().slice(0, 5),])
                   rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
                   volunteersJson = JSON.parse(`{${rawVolunteers}}`)
                   fs.appendFileSync(`${path}volunteers.csv`, `\n${volunteers.at(-1).join(',')}`)
-                  content += `added volunteer ${query.name} with ID ${query.newId}`
+                  content += `added volunteer ${query.name} with ID ${volunteers.length}`
+                } else if (query.volId) {
+                  const volunteerIndex = volunteers.findIndex(v => String(v[0]) === query.volId)
+                  console.log('checking out volunteer ', query.volId, volunteerIndex)
+                  volunteers[volunteerIndex][6] = new Date().toTimeString().slice(0, 5)
+                  fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(l => l.join(',')).join('\n'))
                 }
-                content += adminTable(volunteers[0], volunteers.slice(2), 'Registered Volunteers', query.volunteers || 'A-ID', 'volunteers')
+                const active = volunteers.slice(2).filter(v => !v[6]).map(v => [...v, '<button>Checkout</button>'])
+                const inactive = volunteers.slice(2).filter(v => v[6]).map(v => {
+                  const start = v[5].split(':').map(Number)
+                  const end = v[6].split(':').map(Number)
+                  const duration = `${end[0] - (end[1] < start[1] ? 1 : 0) - start[0]}:${String(end[1] + (end[1] < start[1] ? 60 : 0) - start[1]).padStart(2, '0')}`
+                  return [...v, duration]
+                })
+                content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.volunteers || 'A-ID', 'active')
+                content += adminTable([...volunteers[0], 'duration'], inactive, `${inactive.length} Volunteers who left`, query.volunteers || 'A-ID', 'done')
               } else if (query.page?.startsWith('combo')) {
                 content += fs.readFileSync('./www/combo.html').toString()
                 if (query.id1 && query.id2) {
@@ -352,12 +370,18 @@ const server = createServer((req, res) => {
               } else if (query.page?.startsWith('print')) {
                 content += fs.readFileSync('./www/print.html').toString()
                 if (query.printId) {
-                  printOrder(query.printId, readOrderFile(query.printId), 'manual print')
-                  content += `attempting to print order # ${query.printId}`
+                  let orderFile
+                  if (fs.existsSync(`${path}gen/${query.printId}.csv`)) {
+                    orderFile = query.printId
+                  } else if (fs.existsSync(`${path}gen/${query.printId}-combo.csv`)) {
+                    orderFile = query.printId + '-combo'
+                  }
+                  if (orderFile) {
+                    content += `attempting to print order # ${orderFile}`
+                    printOrder(query.printId, readOrderFile(orderFile), 'manual print')
+                  } else {content += `could not find order # ${query.printId}`}
                 }
-              } else {
-                content = content.replace('class="menu"', 'class="menu active"')
-              }
+              } else {content = content.replace('class="menu"', 'class="menu active"')}
             } catch (e) {
               content += `THERE WAS AN ERROR RENDERING ADMIN PAGE ${query.page}<br>` + e.stack.replaceAll('\n', '<br>')
             }
