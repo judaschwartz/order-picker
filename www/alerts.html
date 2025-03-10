@@ -10,7 +10,7 @@
 <script>
   window.addEventListener('load', function() {
     clearInterval(autoRefresh)
-    document.querySelector('#auto-reload').checked = false
+    document.querySelector('#auto-reload').style.display = 'none'
     document.querySelectorAll('#alerts tr:not(:first-child) td:first-child').forEach(e => {
       e.onclick = () => {
         url.searchParams.set('remove', e.nextSibling.innerText)

@@ -38,11 +38,9 @@ p {
 
 .prod-name small {
   font-size: 18px;
-  background-color: #fffc6a;
   display: block;
   height: 20px;
   visibility: hidden;
-  color: #000;
 }
 
 .prod-name.side small {

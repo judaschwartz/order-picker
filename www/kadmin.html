@@ -10,7 +10,7 @@
 <body>
   <header>
     <div class="burger" onclick="document.querySelector('.menu').classList.add('active')">&#9776;</div>
-    <label><input type="checkbox" id="auto-reload" onclick="toggleRefresh()" checked>Auto Refresh Page</label>
+    <label id="auto-reload"><input type="checkbox" onclick="toggleRefresh()" checked>Auto Refresh Page</label>
     <ul class="menu">
       <li onclick="page('volunteers')">Volunteers</li>
       <li onclick="page('alerts')">Product Alerts</li>
@@ -25,7 +25,7 @@
     const url = new URL(location.href)
     const autoRefresh = setInterval(() => {window.location.reload()}, (30 * 1000))
     function toggleRefresh() {
-      if (!document.querySelector('#auto-reload').checked) {
+      if (!document.querySelector('#auto-reload input').checked) {
         console.log('Refresh stopped')
         clearInterval(autoRefresh)
       } else {

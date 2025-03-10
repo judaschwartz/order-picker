@@ -14,16 +14,16 @@
 <script>
   window.addEventListener('load', function() {
     clearInterval(autoRefresh)
-    document.querySelector('#auto-reload').checked = false;
+    document.querySelector('#auto-reload').style.display = 'none';
     ['name', 'phone', 'email', 'hasOrder', 'volId'].forEach(param => url.searchParams.delete(param))
     window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
-    document.querySelectorAll('#active tr').forEach((row) => row.lastChild.addEventListener('click', function() {
-      if (confirm(`Are you sure you want to check out ${row.firstChild.textContent}?`)) {
-        url.searchParams.set('volId', row.firstChild.textContent)
-        window.location.href = url.href
-      }
-    }))
   })
+  function checkout(volId) {
+    if (confirm(`Are you sure you want to check out ${volId}?`)) {
+      url.searchParams.set('volId', volId)
+      window.location.href = url.href
+    }
+  }
   function addVol() {
     const name = document.querySelector('input[name="name"]').value
     const phone = document.querySelector('input[name="phone"]').value.replace(/\D/g, '')

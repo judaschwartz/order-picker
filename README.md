@@ -21,7 +21,7 @@
 - Navigate to `<URL>:<PORT>/volunteer` to register volunteers. Each volunteer will be assigned a sequential number.
 - The list of volunteers is also saved in `orders/volunteers.csv`.
 
-**Note:** There is always a default admin volunteer #990.
+**Note:** There is always a default admin volunteer #998.
 
 ### Obtaining Results:
 - Run `npm run results` to generate `resultsByItm.csv` and `resultsByUser.csv`, summarizing discrepancies between what was picked and actual orders.
