@@ -268,7 +268,7 @@ const server = createServer((req, res) => {
         side = order[itm][4] ? 'side' : ''
         prdQty = order[itm][1] || '0'
         prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
-      }
+      } else if (filePath === './kadmin') {filePath = './admin/index.html'}
     } catch (error) {
       warn = error.stack.replaceAll('\n', '<br>')
       filePath = './error.html'
@@ -313,10 +313,10 @@ const server = createServer((req, res) => {
           } else if (filePath === './start-index.js') {
             cache = 'no-store'
             content = content.replace('ORDERS', rawOrders).replace('VOLUNTEERS', `{${rawVolunteers}}`).replace('PREFIX', orderIdPrefix)
-          } else if (filePath === './kadmin.html') {
+          } else if (filePath === './admin/index.html') {
             try {
               if (query.page?.startsWith('alert')) {
-                content += fs.readFileSync('./www/alerts.html').toString()
+                content += fs.readFileSync('./www/admin/alerts.html').toString()
                 if (query.remove) {
                   delete prodAlerts[query.remove]
                   content += `removed alert for ${query.remove}`
@@ -343,7 +343,7 @@ const server = createServer((req, res) => {
               } else if (query.page?.startsWith('item')) {
                 content += adminTable(['ID','name','qtyPicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
               } else if (query.page?.startsWith('vol')) {
-                content += fs.readFileSync('./www/volunteers.html').toString()
+                content += fs.readFileSync('./www/admin/volunteers.html').toString()
                 if (query.name) {
                   const id = volunteers.length
                   console.log('adding volunteer ', query.name, ' with id ', id)
@@ -369,12 +369,12 @@ const server = createServer((req, res) => {
                 content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.volunteers || 'A-ID', 'active')
                 content += adminTable([...volunteers[0], 'Time'], inactive, `${inactive.length} Finished Volunteers`, query.volunteers || 'A-ID', 'done')
               } else if (query.page?.startsWith('combo')) {
-                content += fs.readFileSync('./www/combo.html').toString()
+                content += fs.readFileSync('./www/admin/combo.html').toString()
                 if (query.id1 && query.id2) {
                   content += combineOrders(Math.min(query.id1, query.id2).toString(), Math.max(query.id1, query.id2).toString())
                 }
               } else if (query.page?.startsWith('print')) {
-                content += fs.readFileSync('./www/print.html').toString()
+                content += fs.readFileSync('./www/admin/print.html').toString()
                 if (query.printId) {
                   let orderFile
                   if (fs.existsSync(`${path}gen/${query.printId}.csv`)) {

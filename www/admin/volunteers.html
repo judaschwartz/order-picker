@@ -12,12 +12,6 @@
   </form>
 </div>
 <script>
-  window.addEventListener('load', function() {
-    clearInterval(autoRefresh)
-    document.querySelector('#auto-reload').style.display = 'none';
-    ['name', 'phone', 'email', 'hasOrder', 'volId'].forEach(param => url.searchParams.delete(param))
-    window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
-  })
   function checkout(volId) {
     if (confirm(`Are you sure you want to check out ${volId}?`)) {
       url.searchParams.set('volId', volId)
