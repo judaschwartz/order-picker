@@ -80,12 +80,13 @@ header input{
 }
 
 .burger {
-  font-size: 40px;
+  font-size: 35px;
   cursor: pointer;
   float: left;
   border: 1px solid;
   border-radius: 5px;
-  padding: 0 10px 3px;
+  padding: 5px 10px;
+  display: block;
   margin: 10px 40px 0 10px;
 }
 
@@ -112,7 +113,7 @@ header input{
   background-color: white;
   z-index: 1000;
   margin: 0;
-  padding: 20px 0;
+  padding: 50px 0;
   overflow: scroll;
 }
 

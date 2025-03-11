@@ -9,7 +9,7 @@ function toggleRefresh() {
   }
 }
 window.addEventListener('load', function() {
-  if (!['combo'].includes(url.searchParams.get('page'))) {
+  if (!['combo', 'print', 'volunteers', 'alerts'].includes(url.searchParams.get('page'))) {
     autoRefresh = setInterval(() => {window.location.reload()}, (30 * 1000))
   } else {
     document.querySelector('#auto-reload').style.display = 'none'

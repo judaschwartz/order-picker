@@ -2,9 +2,9 @@
   <h2>Volunteer Sign up</h2>
   <form>
     <label for="name">Name:</label>
-    <input type="text" id="name" name="name" placeholder="First Last" />
+    <input required type="text" id="name" name="name" placeholder="First Last" />
     <label for="phone">Phone:</label>
-    <input type="tel" id="phone" name="phone" placeholder="999-999-9999" />
+    <input type="tel" id="phone" name="phone" placeholder="2161234567" />
     <label for="email">Email:</label>
     <input type="email" id="email" name="email" placeholder="user@email.com" />
     <label for="hasOrder"><input type="checkbox" id="hasOrder" name="hasOrder">Need to pick up own order</label>
@@ -19,13 +19,11 @@
     }
   }
   function addVol() {
-    const name = document.querySelector('input[name="name"]').value
-    const phone = document.querySelector('input[name="phone"]').value.replace(/\D/g, '')
-    const email = document.querySelector('input[name="email"]').value
-    if (name.trim()) {
-      url.searchParams.set('name', name.trim())
-      url.searchParams.set('phone', `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6, 10)}`)
-      url.searchParams.set('email', email.trim().toLowerCase())
+    const name = document.querySelector('input[name="name"]').value.trim()
+    if (name) {
+      url.searchParams.set('name', name)
+      url.searchParams.set('phone', document.querySelector('input[name="phone"]').value.replace(/\D/g, ''))
+      url.searchParams.set('email', document.querySelector('input[name="email"]').value.trim().toLowerCase())
       url.searchParams.set('hasOrder', document.querySelector('input[name="hasOrder"]').checked ? 'Yes' : 'No')
       window.location.href = url.href
     }
