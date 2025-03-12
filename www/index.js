@@ -1,5 +1,10 @@
-const loc = location.href.split('&')
-const user = loc.find(u => u.includes('user'))?.split('=')?.[1];
+const url = new URL(location.href)
+const user = url.searchParams.get('user')
+const picker = url.searchParams.get('picker')
+if (picker) {
+  url.searchParams.delete('picker')
+  window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
+}
 function validateForm(event) {
   const qty = parseInt(document.getElementById('qty').value || 0)
   document.getElementById('qty').value = qty
@@ -13,10 +18,7 @@ function validateForm(event) {
     event.preventDefault()
   }
 }
-document.addEventListener('DOMContentLoaded', function () {
-  if (loc.some((f) => f.includes('picker'))) {
-    window.history.replaceState(null, '', loc.slice(0, -4).join("&"))
-  }
+window.addEventListener('load', function() {
   [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
 })
 
@@ -36,7 +38,7 @@ function goBack() {
   if (document.referrer.includes('user=')) {
     history.go(-1)
   } else {
-    location.href = document.referrer + `?deleteUser=${user}`
+    location.href = url.pathname + `?deleteUser=${user}&picker=${picker}`
   }
 }
 

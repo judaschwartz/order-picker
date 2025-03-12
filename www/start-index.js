@@ -1,6 +1,7 @@
 const url = new URL(location.href)
-const params = url.searchParams
-const loc = location.href.split("?")
+const pickerId = url.searchParams.get('picker')
+const deleteUser = url.searchParams.get('deleteUser')
+window.history.replaceState(null, '', url.pathname)
 const orders = JSON.parse(`ORDERS`)
 const volunteers = JSON.parse(`VOLUNTEERS`)
 function validateForm(event) {
@@ -24,13 +25,13 @@ function validateForm(event) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+window.addEventListener('load', function() {
   document.querySelector('#user').addEventListener('change', function () {
     const user = parseInt(this.value.trim())
     if (orders[user]) {
       document.getElementById('name').value = orders[user]
       document.getElementById('picker').focus()
-    } else {
+    } else if (user) {
       alert('Order #' + user + ' is not in our system')
       document.getElementById('name').value = ''
     }
@@ -38,16 +39,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('#user').insertAdjacentHTML('beforeBegin', '<b>PREFIX-</b>')
   document.querySelector('#picker').addEventListener('change', function () {
     const vol = parseInt(this.value.trim())
-    if (volunteers[vol]) {
-      document.querySelector('#p-name span').innerText = volunteers[vol]
-    } else {
-      alert('volunteer #' + vol + ' is not registered')
-    }
+    if (volunteers[vol]) document.querySelector('#p-name span').innerText = volunteers[vol]
+    else if (vol) alert('volunteer #' + vol + ' is not registered')
   })
-  const pickerId = params.get('picker')?.split('# ')?.at(-1)?.slice(0, -1)
-  if (pickerId) {
-    document.getElementById('picker').value = pickerId
-    document.getElementById('picker').dispatchEvent(new Event('change', { bubbles: true }))
-  }
-  window.history.replaceState(null, '', loc[0])
+  if (pickerId) document.getElementById('picker').value = pickerId
+  if (deleteUser) document.querySelector('#user').value = deleteUser
+  document.getElementById('picker').dispatchEvent(new Event('change', { bubbles: true }))
+  document.querySelector('#user').dispatchEvent(new Event('change', { bubbles: true }))
 })

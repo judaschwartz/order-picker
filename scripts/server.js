@@ -11,17 +11,14 @@ const path = `orders/${orderIdPrefix}/`
 if (!fs.existsSync(`${path}orders.json`)) {
   return console.log('orders.json file not found you need to execute the "npm run init" command to create the orders')
 }
+if (!fs.existsSync(`${path}printed`)) {fs.mkdirSync(`${path}printed`)}
 if (!fs.existsSync(`${path}completed-orders.csv`)) {
   fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,side')
 }
 if (!fs.existsSync(`${path}volunteers.csv`)) {
   fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Own,Start,End,Ttl\n998,Admin,,,,,,0')
 }
-if (!fs.existsSync(`${path}pickLine.csv`)) {
-  fs.writeFileSync(`${path}pickLine.csv`, 'side,name,orderId,picker,qty,start')
-}
-if (!fs.existsSync(`${path}printed`)) {fs.mkdirSync(`${path}printed`)}
-const pickLine = fs.readFileSync(`${path}pickLine.csv`).toString().split('\n').map(l => l.split(','))
+const pickLine = []
 const prodAlerts = fs.existsSync(`${path}alerts.json`) ? JSON.parse(fs.readFileSync(`${path}alerts.json`).toString()) : {}
 const itmTotals = fs.existsSync(`${path}itmTotals.json`) ? JSON.parse(fs.readFileSync(`${path}itmTotals.json`).toString()) : {}
 let rawOrders = fs.readFileSync(`${path}orders.json`).toString()
@@ -64,8 +61,8 @@ function combineOrders (id1, id2) {
 
 function pickDuration (completed) {
   const endTime = new Date().toTimeString().slice(0, 8)
-  const start = completed[4].split(':').map(Number)
   const end = endTime.split(':').map(Number)
+  const start = completed[4] ? completed[4].split(':').map(Number) : end
   return [...completed.slice(0, -1), endTime, end[1] - start[1] + ((end[0] - start[0]) * 60), completed.at(-1)]
 }
 
@@ -124,7 +121,7 @@ async function printOrder (id, order, time) {
     const pdfPath = `${path}printed/print-${id}-${time.replaceAll(':', '_')}.pdf`
     await page.pdf({ path: pdfPath, format: 'A4', printBackground: true, margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' } })
     await browser.close()
-    // await print(pdfPath)
+    if (process.env.SKIP_PRINT !== 'true') await print(pdfPath)
     console.log(`Order ${id} printed successfully`)
   } catch (error) {
     console.error(`Error printing PDF for order #${id}:`, error)
@@ -156,9 +153,9 @@ const server = createServer((req, res) => {
           if (pickIndex > -1) {
             const completed = pickLine.splice(pickIndex, 1)[0]
             fs.appendFileSync(`${path}completed-orders.csv`, `\n${pickDuration(completed)}`)
-            fs.writeFileSync(`${path}pickLine.csv`, pickLine.join('\n'))
             console.log(`moved #${query.lastUser} from picking line to completed orders`)
           } else {
+            fs.appendFileSync(`${path}completed-orders.csv`, `\n${pickDuration([ordersJson[query.lastUser],query.lastUser,query.picker,,,'offList'])}`)
             console.error(`could not find order #${query.lastUser} in the picking line`)
           }
         }
@@ -169,7 +166,6 @@ const server = createServer((req, res) => {
             pickLine.splice(pickIndex, 1)
             const order = readOrderFile(query.deleteUser)
             order[1][2] = order[1][2].split(':').slice(0, -1).join(':')
-            fs.writeFileSync(`${path}pickLine.csv`, pickLine.join('\n'))
             fs.writeFileSync(`${path}gen/${query.deleteUser}.csv`, order.join('\n'))
           }
         }
@@ -198,7 +194,6 @@ const server = createServer((req, res) => {
             console.error(`order #${user} is already in the picking line`)
           } else {
             pickLine.push([ordersJson[String(user)], user, query.picker, order[1][3], new Date().toTimeString().slice(0, 8), query.side])
-            fs.appendFileSync(`${path}pickLine.csv`, '\n' + pickLine.at(-1))
           }
         }
         if (typeof comment !== 'undefined' && comment !== order[1][1]) {
@@ -215,11 +210,7 @@ const server = createServer((req, res) => {
           }
           order[lastItm][2] = qty
           const itmKey = `${order[lastItm][3]}-${order[lastItm][0]}`
-          if (itmTotals[itmKey]) {
-            itmTotals[itmKey] += (qty - lstQty)
-          } else {
-            itmTotals[itmKey] = qty
-          }
+          if (itmTotals[itmKey]) itmTotals[itmKey][0] += (qty - lstQty)
         }
         if (changed) {
           fs.writeFileSync(`${path}gen/${user}.csv`, order.map(l => l.join(',')).join('\n'))
@@ -337,11 +328,11 @@ const server = createServer((req, res) => {
               } else if (query.page?.startsWith('order')) {
                 const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
                 const unqIds = [...new Set(completed.map(o => o[1]))]
-                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'end', 'orders')
+                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'A-end', 'orders')
                 const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
                 content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
               } else if (query.page?.startsWith('item')) {
-                content += adminTable(['ID','name','qtyPicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
+                content += adminTable(['ID','name','qty','picked','unpicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1][1], i[1][0], i[1][1] - i[1][0]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
               } else if (query.page?.startsWith('volunteer')) {
                 if (query.name) {
                   const id = volunteers.length

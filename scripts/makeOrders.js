@@ -12,13 +12,23 @@ const names = fs.readFileSync(`${path}nameSlot.csv`).toString().split("\n").slic
 // orders.push(['999', 'test2', ...names.map((n, i) => i)].join(','))
 // orders.push(['998', 'test1', ...names.map((n, i) => (!i || i === names.length -1)*1)].join(','))
 const jsonFile = {}
+const itmTotals = {}
 orders.forEach(l => {
   l = l.trim().split(',')
   const name = [l[1], l[2]].join(' ').toUpperCase().trim()
   jsonFile[l[0]] = name
   let ttl = 0
   const order = l.slice(3).map((n, i) => {
-    ttl += parseInt(n) ? parseInt(n) : 0
+    const qty = parseInt(n) ? parseInt(n) : 0
+    if (qty) {
+      const itmKey = `${names[i][1]}-${names[i][2]}`
+      if (itmTotals[itmKey]) {
+        itmTotals[itmKey][1] += qty
+      } else {
+        itmTotals[itmKey] = [0, qty]
+      }
+      ttl += qty
+    }
     return [names[i][0], names[i][2]?.trim(), n.toUpperCase(), , names[i][1], names[i][3]?.trim()]
   }).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(l => l.slice(1).join(','))
   if (names[0].length === 3) { // if no produce add another line at end
@@ -27,6 +37,7 @@ orders.forEach(l => {
   fs.writeFileSync(`${path}gen/${l[0]}.csv`, ['name,ordered,picked,slot,ss', `${name},,,${ttl},`, ...order].join("\n"))
 })
 fs.writeFileSync(`${path}orders.json`, JSON.stringify(jsonFile, null, 2))
+fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmTotals, null, 2))
 console.log(`${orders.length} Orders Created`)
 // create unpaid.json file
 // const up = fs.readFileSync(`${path}unpaid.csv`).toString().split("\n").map(l => l.split(','))
