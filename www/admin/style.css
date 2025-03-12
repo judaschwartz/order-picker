@@ -124,3 +124,9 @@ header input{
 #itms button {
   float: right;
 }
+
+.alert {
+  color: red;
+  background: #df0;
+  padding: 5px 10px;
+}

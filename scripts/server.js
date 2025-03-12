@@ -210,7 +210,10 @@ const server = createServer((req, res) => {
           }
           order[lastItm][2] = qty
           const itmKey = `${order[lastItm][3]}-${order[lastItm][0]}`
-          if (itmTotals[itmKey]) itmTotals[itmKey][0] += (qty - lstQty)
+          if (itmTotals[itmKey]) {
+            itmTotals[itmKey][1] += (qty - lstQty)
+            itmTotals[itmKey][2] -= (qty - lstQty)
+          }
         }
         if (changed) {
           fs.writeFileSync(`${path}gen/${user}.csv`, order.map(l => l.join(',')).join('\n'))
@@ -334,13 +337,14 @@ const server = createServer((req, res) => {
               } else if (query.page?.startsWith('item')) {
                 content += fs.readFileSync('./www/admin/items.html').toString()
                 if (query.itmKey && Number(query.qty)) {
-                  itmTotals[query.itmKey][1] += parseInt(query.qty)
+                  itmTotals[query.itmKey][2] += parseInt(query.qty)
                   content += `changed qty for "${query.itmKey}" by ${query.qty}`
                   console.log(`changed qty for "${query.itmKey}" by ${query.qty}`)
                   fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmTotals, null, 2))
                 }
-                content += adminTable(['ID','name','qty','picked','unpicked'], Object.entries(itmTotals).map(i => {
-                  return [...i[0].split('-'), `${i[1][1]}<button onclick="adjust('${i[0]}')">change</button>`, i[1][0], i[1][1] - i[1][0]]
+                content += adminTable(['ID','name','ordered','picked','onFloor'], Object.entries(itmTotals).map(i => {
+                  const floor = i[1][2] > 9 ? i[1][2] : `<b class="alert">${i[1][2]}</b>`
+                  return [...i[0].split('-'), i[1][0], i[1][1], `${floor}<button onclick="adjust('${i[0]}')">change</button>`]
                 }), 'Totals picked by Item:', query.itms || 'ID', 'itms')
               } else if (query.page?.startsWith('volunteer')) {
                 if (query.name) {

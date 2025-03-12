@@ -23,9 +23,10 @@ orders.forEach(l => {
     if (qty) {
       const itmKey = `${names[i][1]}-${names[i][2]}`
       if (itmTotals[itmKey]) {
-        itmTotals[itmKey][1] += qty
+        itmTotals[itmKey][0] += qty
+        itmTotals[itmKey][2] += qty
       } else {
-        itmTotals[itmKey] = [0, qty]
+        itmTotals[itmKey] = [qty, 0, qty]
       }
       ttl += qty
     }
