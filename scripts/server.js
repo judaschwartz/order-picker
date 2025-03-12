@@ -332,7 +332,16 @@ const server = createServer((req, res) => {
                 const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
                 content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
               } else if (query.page?.startsWith('item')) {
-                content += adminTable(['ID','name','qty','picked','unpicked'], Object.entries(itmTotals).map(i => [...i[0].split('-'), i[1][1], i[1][0], i[1][1] - i[1][0]]), 'Totals picked by Item:', query.itms || 'ID', 'itms')
+                content += fs.readFileSync('./www/admin/items.html').toString()
+                if (query.itmKey && Number(query.qty)) {
+                  itmTotals[query.itmKey][1] += parseInt(query.qty)
+                  content += `changed qty for "${query.itmKey}" by ${query.qty}`
+                  console.log(`changed qty for "${query.itmKey}" by ${query.qty}`)
+                  fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmTotals, null, 2))
+                }
+                content += adminTable(['ID','name','qty','picked','unpicked'], Object.entries(itmTotals).map(i => {
+                  return [...i[0].split('-'), `${i[1][1]}<button onclick="adjust('${i[0]}')">change</button>`, i[1][0], i[1][1] - i[1][0]]
+                }), 'Totals picked by Item:', query.itms || 'ID', 'itms')
               } else if (query.page?.startsWith('volunteer')) {
                 if (query.name) {
                   const id = volunteers.length

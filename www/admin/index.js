@@ -30,7 +30,7 @@ window.addEventListener('load', function() {
       })
     })
   });
-  ['name', 'phone', 'email', 'hasOrder', 'volId', 'printId', 'prodId', 'itmAlert', 'remove', 'id1', 'id2'].forEach(param => url.searchParams.delete(param))
+  ['name', 'phone', 'email', 'hasOrder', 'volId', 'printId', 'prodId', 'itmAlert', 'itmKey', 'qty', 'remove', 'id1', 'id2'].forEach(param => url.searchParams.delete(param))
   window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
 })
 function page(page) {
