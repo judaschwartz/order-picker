@@ -5,20 +5,19 @@ const path = `orders/${orderIdPrefix}/`
 if (!fs.existsSync(`${path}gen`)) {
   fs.mkdirSync(`${path}gen`, { recursive: true })
 }
-const orders = fs.readFileSync(`${path}allOrders.csv`).toString().split("\n").slice(1)
-  .filter(o => Number(o.replace(/,/g, '').match(/\d+/g)?.[1]))
+const orders = fs.readFileSync(`${path}allOrders.csv`).toString().split("\n").filter(o => Number(o.split(',').slice(3, -2).join('')))
 const names = fs.readFileSync(`${path}nameSlot.csv`).toString().split("\n").slice(1).map(l => l.split(','))
 // add test orders
-// orders.push(['999', 'test2', ...names.map((n, i) => i)].join(','))
-// orders.push(['998', 'test1', ...names.map((n, i) => (!i || i === names.length -1)*1)].join(','))
+// orders.push(['test2', 'name', ...orders[0].split(',').slice(3, -1).map((n, i) => i),'Yes', '999'].join(','))
+// orders.push(['test1','first','wife', ...orders[0].split(',').slice(3, -2).map(n => 1), 'No','998'].join(','))
 const jsonFile = {}
 const itmTotals = {}
 orders.forEach(l => {
   l = l.trim().split(',')
-  const name = [l[1], l[2]].join(' ').toUpperCase().trim()
-  jsonFile[l[0]] = name
+  const name = [l[0], l[1], l[2]].join(' ').toUpperCase().trim()
+  jsonFile[l.at(-1)] = name
   let ttl = 0
-  const order = l.slice(3).map((n, i) => {
+  const order = l.slice(3, -1).map((n, i) => {
     const qty = parseInt(n) ? parseInt(n) : 0
     if (qty) {
       const itmKey = `${names[i][1]}-${names[i][2]}`
@@ -35,7 +34,7 @@ orders.forEach(l => {
   if (names[0].length === 3) { // if no produce add another line at end
     order.push(',,,,')
   }
-  fs.writeFileSync(`${path}gen/${l[0]}.csv`, ['name,ordered,picked,slot,ss', `${name},,,${ttl},`, ...order].join("\n"))
+  fs.writeFileSync(`${path}gen/${l.at(-1)}.csv`, ['name,ordered,picked,slot,ss', `${name},,,${ttl},`, ...order].join("\n"))
 })
 fs.writeFileSync(`${path}orders.json`, JSON.stringify(jsonFile, null, 2))
 fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmTotals, null, 2))

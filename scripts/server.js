@@ -18,7 +18,10 @@ if (!fs.existsSync(`${path}completed-orders.csv`)) {
 if (!fs.existsSync(`${path}volunteers.csv`)) {
   fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Own,Start,End,Ttl\n998,Admin,,,,,,0')
 }
-const pickLine = []
+if (!fs.existsSync(`${path}pickLine.csv`)) {
+  fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Side')
+}
+const pickLine = fs.readFileSync(`${path}pickLine.csv`).toString().split('\n').map(l => l.split(','))
 const prodAlerts = fs.existsSync(`${path}alerts.json`) ? JSON.parse(fs.readFileSync(`${path}alerts.json`).toString()) : {}
 const itmTotals = fs.existsSync(`${path}itmTotals.json`) ? JSON.parse(fs.readFileSync(`${path}itmTotals.json`).toString()) : {}
 let rawOrders = fs.readFileSync(`${path}orders.json`).toString()
@@ -194,6 +197,7 @@ const server = createServer((req, res) => {
             console.error(`order #${user} is already in the picking line`)
           } else {
             pickLine.push([ordersJson[String(user)], user, query.picker, order[1][3], new Date().toTimeString().slice(0, 8), query.side])
+            fs.writeFileSync(`${path}pickLine.csv`, pickLine.join('\n'))
           }
         }
         if (typeof comment !== 'undefined' && comment !== order[1][1]) {

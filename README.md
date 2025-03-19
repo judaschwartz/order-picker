@@ -34,6 +34,9 @@ Registered volunteers will be assigned a sequential number.
 #### Alerts
 Use slot ID to add alerts or popups to display in app when a picker reaches a specific item (e.g., "Out of Stock").
 
+#### Managing stock
+On the "Items Picked" page, an admin can update the quantity of an item currently available on the picking floor. This number will be updated automatically with each pick, allowing the admin to monitor inventory levels and determine when to move more items onto the picking floor.
+
 ### Obtaining Results:
 Run `npm run results` to generate `resultsByItm.csv` and `resultsByUser.csv`, summarizing discrepancies between what was picked and actual orders.
 - Set the directory same as above
