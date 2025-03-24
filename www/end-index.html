@@ -29,9 +29,13 @@
   <script src="index.js"></script>
   <script>
     if (document.querySelector('.discrepancy')) {
-      alert('There are is a discrepancy between the items ordered and the amounts filled please double check the table before completing this order')
+      alert('Not all items received, please double check that this is correct before completing order')
     }
     document.getElementById('picker').value = 'NEXT_LIST'?.split('# ')?.at(-1)?.slice(0, -1)
+    window.history.forward() // Prevents user from going back to this page
+    window.addEventListener('unload', function() {
+      window.history.replaceState(null, '', '/no-back.html')
+    })
   </script>
 </body>
 </html>

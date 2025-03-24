@@ -16,7 +16,7 @@ if (!fs.existsSync(`${path}completed-orders.csv`)) {
   fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,side')
 }
 if (!fs.existsSync(`${path}volunteers.csv`)) {
-  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Own,Start,End,Ttl\n998,Admin,,,,,,0')
+  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,Ttl\n998,Admin,,,,,,,0')
 }
 if (!fs.existsSync(`${path}pickLine.csv`)) {
   fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Side')
@@ -44,7 +44,7 @@ function combineOrders (id1, id2) {
     })
     const ttl = Number(ord1[1][3]) + Number(ord2[1][3])
     const name = `${ord1[1][0]} & ${ord2[1][0]}`.trim()
-    const comboId = id1 + id2.padStart(3, '0')
+    const comboId = id1 + id2.padStart(3 * Math.ceil(id2.length / 3), '0')
     fs.writeFileSync(`${path}gen/${comboId}.csv`, [ord1[0], [name,,,ttl,], ...newOrder, []].map(l => l.join(',')).join("\n"))
     delete ordersJson[id1]
     delete ordersJson[id2]
@@ -53,7 +53,7 @@ function combineOrders (id1, id2) {
     totalOrders--
     fs.writeFileSync(`${path}orders.json`, rawOrders)
     fs.renameSync(`${path}gen/${id1}.csv`, `${path}gen/${id1}-combo.csv`)
-    fs.renameSync(`${path}gen/${id2}.csv`, `${path}gen/${id2.padStart(3, '0')}-combo.csv`)
+    fs.renameSync(`${path}gen/${id2}.csv`, `${path}gen/${id2}-combo.csv`)
     console.log(`combined orders ${id1} and ${id2} new order ID is ${comboId}`)
     return `combined orders ${id1} and ${id2} new order ID is ${comboId}`
   } catch (error) {
@@ -96,9 +96,10 @@ function readOrderFile (id) {
 async function printOrder (id, order, time) {
   try {
     if (id.length > 3) {
-      console.log(`${id} is a combo order printing original septate orders`)
-      printOrder(id.slice(0, -3), readOrderFile(`${id.slice(0, -3)}-combo`), time)
-      printOrder(id.slice(-3), readOrderFile(`${id.slice(-3)}-combo`), time)
+      console.log(`${id} is a combo order printing original orders`);
+      [id.slice(0, id.length % 3), ...id.slice(id.length % 3).match(/.../g)].forEach(o => {
+        printOrder(o.replace(/^(.0)/, ''), readOrderFile(`${o.replace(/^(.0)/, '')}-combo`), time)
+      })
     }
     const picked = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty picked</th></tr>']
     const missing = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty missing</th></tr>']
@@ -147,6 +148,9 @@ const server = createServer((req, res) => {
         }
         if (query.lastUser) { // lastUser is the last order that was picked
           const order = readOrderFile(query.lastUser)
+          const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
+          const volunteerIndex = volunteers.findIndex(v => String(v[0]) === pickerId)
+          if (volunteerIndex > -1) volunteers[volunteerIndex][8]++
           if (typeof comment !== 'undefined' && comment !== order[1][1]) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             fs.writeFileSync(`${path}gen/${query.lastUser}.csv`, order.map(l => l.join(',')).join('\n'))
@@ -240,8 +244,6 @@ const server = createServer((req, res) => {
           filePath = './api.html'
         } else if (itm === -1 || lastItm === order.length - 2) { // after all items picked confirmation page
           const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
-          const volunteerIndex = volunteers.findIndex(v => String(v[0]) === pickerId)
-          if (volunteerIndex > -1) volunteers[volunteerIndex][7]++
           var next = `${volunteersJson[pickerId]} (# ${pickerId})`
           itm = order.length - 1
           console.info(`Picker ${next} on confirmation page for order #${user}`)
@@ -354,7 +356,7 @@ const server = createServer((req, res) => {
                 if (query.name) {
                   const id = volunteers.length
                   console.log('adding volunteer ', query.name, ' with id ', id)
-                  volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.hasOrder, new Date().toTimeString().slice(0, 5),,0])
+                  volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.age, query.hasOrder, new Date().toTimeString().slice(0, 5),,0])
                   rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
                   volunteersJson = JSON.parse(`{${rawVolunteers}}`)
                   fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(l => l.join(',')).join('\n'))
@@ -363,14 +365,14 @@ const server = createServer((req, res) => {
                   content += `Checked out volunteer with ID ${query.volId}`
                   const volunteerIndex = volunteers.findIndex(v => String(v[0]) === query.volId)
                   console.log('checking out volunteer ', query.volId, volunteerIndex)
-                  volunteers[volunteerIndex][6] = new Date().toTimeString().slice(0, 5)
+                  volunteers[volunteerIndex][7] = new Date().toTimeString().slice(0, 5)
                   fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(l => l.join(',')).join('\n'))
                 }
-                const active = volunteers.slice(2).filter(v => !v[6])
-                  .map(v => [...v.slice(0, 6), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v[7]])
-                const inactive = volunteers.slice(2).filter(v => v[6]).map(v => {
-                  const start = v[5].split(':').map(Number)
-                  const end = v[6].split(':').map(Number)
+                const active = volunteers.slice(2).filter(v => !v[7])
+                  .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v[8]])
+                const inactive = volunteers.slice(2).filter(v => v[7]).map(v => {
+                  const start = v[6].split(':').map(Number)
+                  const end = v[7].split(':').map(Number)
                   const duration = `${end[0] - (end[1] < start[1] ? 1 : 0) - start[0]}:${String(end[1] + (end[1] < start[1] ? 60 : 0) - start[1]).padStart(2, '0')}`
                   return [...v, duration]
                 })

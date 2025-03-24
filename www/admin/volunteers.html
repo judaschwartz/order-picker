@@ -8,6 +8,14 @@
     <label for="email">Email:</label>
     <input type="email" id="email" name="email" placeholder="user@email.com" />
     <label for="hasOrder"><input type="checkbox" id="hasOrder" name="hasOrder">Need to pick up own order</label>
+    <label for="age">Age range:</label>
+    <select name="age" id="age">
+      <option value="">AGE</option>
+      <option value="1">Under 20</option>
+      <option value="2">20 to 40</option>
+      <option value="3">40 to 60</option>
+      <option value="4">over 60</option>
+    </select><br>
     <button type="button" onclick="addVol()">Add Volunteer</button>
   </form>
 </div>
@@ -24,6 +32,7 @@
       url.searchParams.set('name', name)
       url.searchParams.set('phone', document.querySelector('input[name="phone"]').value.replace(/\D/g, ''))
       url.searchParams.set('email', document.querySelector('input[name="email"]').value.trim().toLowerCase())
+      url.searchParams.set('age', document.querySelector('#age').value)
       url.searchParams.set('hasOrder', document.querySelector('input[name="hasOrder"]').checked ? 'Yes' : 'No')
       window.location.href = url.href
     }
