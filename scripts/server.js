@@ -98,7 +98,7 @@ async function printOrder (id, order, time) {
     if (id.length > 3) {
       console.log(`${id} is a combo order printing original orders`);
       [id.slice(0, id.length % 3), ...id.slice(id.length % 3).match(/.../g)].forEach(o => {
-        printOrder(o.replace(/^(.0)/, ''), readOrderFile(`${o.replace(/^(.0)/, '')}-combo`), time)
+        printOrder(o.replace(/^(.0)/, ''), readOrderFile(`${o.replace(/^(.0)/, '')}-combo`))
       })
     }
     const picked = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty picked</th></tr>']
@@ -113,7 +113,7 @@ async function printOrder (id, order, time) {
       }
     })
     const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
-    let html = `<h2>Order ${orderIdPrefix}-${id} for ${order[1][0]}</h2><h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId}) ${time}</h4>`
+    let html = `<h2>Order ${orderIdPrefix}-${id} for ${order[1][0]}</h2><h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4>`
     html += order[order.length - 1][1] === 'YES' ? '<div class="alert"><div>&#9888;</div><p>This order includes a produce package.<br>Please proceed to the station which will be to your right when you exit the building</p></div>' : ''
     html += `<table>${picked.join('')}</table>`
     if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
@@ -122,8 +122,14 @@ async function printOrder (id, order, time) {
     const browser = await launch()
     const page = await browser.newPage()
     await page.setContent(html)
-    const pdfPath = `${path}printed/print-${id}-${time.replaceAll(':', '_')}.pdf`
-    await page.pdf({ path: pdfPath, format: 'A4', printBackground: true, margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' } })
+    const pdfPath = `${path}printed/print-${id}-${new Date().toLocaleTimeString().replaceAll(':', '_')}.pdf`
+    await page.pdf({
+      path: pdfPath,
+      format: 'A4',
+      printBackground: true,
+      displayHeaderFooter: true,
+      margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' }
+    })
     await browser.close()
     if (process.env.SKIP_PRINT !== 'true') await print(pdfPath)
     console.log(`Order ${id} printed successfully`)
@@ -155,7 +161,7 @@ const server = createServer((req, res) => {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             fs.writeFileSync(`${path}gen/${query.lastUser}.csv`, order.map(l => l.join(',')).join('\n'))
           }
-          printOrder(query.lastUser, order, new Date().toLocaleTimeString())
+          printOrder(query.lastUser, order)
           const pickIndex = pickLine.findIndex(p => p[1] === query.lastUser)
           if (pickIndex > -1) {
             const completed = pickLine.splice(pickIndex, 1)[0]
@@ -394,7 +400,7 @@ const server = createServer((req, res) => {
                   }
                   if (orderFile) {
                     content += `attempting to print order # ${orderFile}`
-                    printOrder(query.printId, readOrderFile(orderFile), 'manual print')
+                    printOrder(query.printId, readOrderFile(orderFile))
                   } else {content += `could not find order # ${query.printId}`}
                 }
                 content += fs.readFileSync('./www/admin/print.html').toString()
