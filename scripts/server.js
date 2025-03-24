@@ -93,7 +93,7 @@ function readOrderFile (id) {
   } catch (error) { console.error(`Error reading order file ${id}:`, error) }
 }
 
-async function printOrder (id, order, time) {
+async function printOrder (id, order) {
   try {
     if (id.length > 3) {
       console.log(`${id} is a combo order printing original orders`);
@@ -113,9 +113,9 @@ async function printOrder (id, order, time) {
       }
     })
     const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
-    let html = `<h2>Order ${orderIdPrefix}-${id} for ${order[1][0]}</h2><h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4>`
+    let html = `<title>Order ${orderIdPrefix}-${id} for ${order[1][0]}</title>`
     html += order[order.length - 1][1] === 'YES' ? '<div class="alert"><div>&#9888;</div><p>This order includes a produce package.<br>Please proceed to the station which will be to your right when you exit the building</p></div>' : ''
-    html += `<table>${picked.join('')}</table>`
+    html += `<h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4><table>${picked.join('')}</table>`
     if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
     if (order[1][1]) html += `<h4>Comments for this order:</h4><p>${order[1][1].replaceAll('&#010;', "<br>")}</p>`
     html += `<style>${fs.readFileSync('./www/style-pdf.css').toString()}</style>`
@@ -126,9 +126,10 @@ async function printOrder (id, order, time) {
     await page.pdf({
       path: pdfPath,
       format: 'A4',
+      waitForFonts: false,
       printBackground: true,
       displayHeaderFooter: true,
-      margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' }
+      margin: { top: '1.3cm', right: '3cm', bottom: '1.3cm', left: '3cm' }
     })
     await browser.close()
     if (process.env.SKIP_PRINT !== 'true') await print(pdfPath)
@@ -391,19 +392,24 @@ const server = createServer((req, res) => {
                 }
                 content += fs.readFileSync('./www/admin/combo.html').toString()
               } else if (query.page?.startsWith('print')) {
-                if (query.printId) {
-                  let orderFile
-                  if (fs.existsSync(`${path}gen/${query.printId}.csv`)) {
-                    orderFile = query.printId
-                  } else if (fs.existsSync(`${path}gen/${query.printId}-combo.csv`)) {
-                    orderFile = query.printId + '-combo'
-                  }
-                  if (orderFile) {
-                    content += `attempting to print order # ${orderFile}`
-                    printOrder(query.printId, readOrderFile(orderFile))
-                  } else {content += `could not find order # ${query.printId}`}
-                }
                 content += fs.readFileSync('./www/admin/print.html').toString()
+                let orderId = query.printId || query.viewId
+                if (orderId) {
+                  if (!fs.existsSync(`${path}gen/${orderId}.csv`)) {
+                    if (!fs.existsSync(`${path}gen/${orderId}-combo.csv`)) {
+                      orderId = ''
+                    }
+                  }
+                  if (orderId) {
+                    const order = readOrderFile(orderId)
+                    if (query.printId) {
+                     content += `attempting to print order # ${orderId}`
+                     printOrder(orderId, order)
+                    } else {
+                      content += adminTable(['seq', ...order[0]], order.slice(2).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}`, query.print || 'seq', 'print')
+                    }
+                  } else {content += `could not find order # ${orderId}`}
+                }
               } else {content = content.replace('class="menu"', 'class="menu active"')}
             } catch (e) {
               content += `THERE WAS AN ERROR RENDERING ADMIN PAGE ${query.page}<br>` + e.stack.replaceAll('\n', '<br>')

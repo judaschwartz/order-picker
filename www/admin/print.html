@@ -2,12 +2,14 @@
 <form>
   <input style="font-size: 50px; width: 230px;" type="number" id="printId" name="printId" />
   <br><br><br><button style="font-size: 40px; padding: 20px;" type="button" onclick="print()">Print Order</button>
+  <br><br><br><button style="font-size: 40px; padding: 20px;" type="button" onclick="print(true)">View Order</button>
 </form><br><br>
 <script>
-  function print() {
+  function print(view = false) {
     const printId = document.querySelector('input[name="printId"]').value.replace(/\D/g, '')
     if (printId.trim()) {
-      url.searchParams.set('printId', printId)
+      url.searchParams.delete('viewId')
+      url.searchParams.set(view ? 'viewId' : 'printId', printId)
       window.location.href = url.href
     } else { alert('Please enter an order ID') }
   }
