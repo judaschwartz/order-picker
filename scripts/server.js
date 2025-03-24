@@ -93,7 +93,7 @@ function readOrderFile (id) {
   } catch (error) { console.error(`Error reading order file ${id}:`, error) }
 }
 
-async function printOrder (id, order) {
+async function printOrder (id, order, printer = '') {
   try {
     if (id.length > 3) {
       console.log(`${id} is a combo order printing original orders`);
@@ -101,20 +101,20 @@ async function printOrder (id, order) {
         printOrder(o.replace(/^(.0)/, ''), readOrderFile(`${o.replace(/^(.0)/, '')}-combo`))
       })
     }
-    const picked = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty picked</th></tr>']
-    const missing = ['<tr><th width="60px">ID</th><th>Item Name</th><th width="90px">qty missing</th></tr>']
+    const picked = ['<tr><th width="90px">qty picked</th><th width="60px">ID</th><th>Item Name</th></tr>']
+    const missing = ['<tr><th width="90px">qty missing</th><th width="60px">ID</th><th>Item Name</th></tr>']
     let ttl = Number(order[1][3])
     order.slice(2).forEach(r => {
       const missed = (Number(r[1]) || 0) - (Number(r[2]) || 0)
-      if (Number(r[2])) picked.push(`<tr><td>${r[3]}</td><td>${r[0]}</td><td>${r[2]}</td></tr>`)
+      if (Number(r[2])) picked.push(`<tr><td>${r[2]}</td><td>${r[3]}</td><td>${r[0]}</td></tr>`)
       if (missed) {
-        missing.push(`<tr><td>${r[3]}</td><td>${r[0]}</td><td>${missed}</td></tr>`)
+        missing.push(`<tr><td>${missed}</td><td>${r[3]}</td><td>${r[0]}</td></tr>`)
         ttl -= missed
       }
     })
     const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
     let html = `<title>Order ${orderIdPrefix}-${id} for ${order[1][0]}</title>`
-    html += order[order.length - 1][1] === 'YES' ? '<div class="alert"><div>&#9888;</div><p>This order includes a produce package.<br>Please proceed to the station which will be to your right when you exit the building</p></div>' : ''
+    html += order[order.length - 1][1] === 'YES' ? '<div class="alert"><div>&#9888;</div><p>This order includes a produce package.<br>Please proceed to the produce station<br>which is to your right when exiting</p></div>' : ''
     html += `<h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4><table>${picked.join('')}</table>`
     if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
     if (order[1][1]) html += `<h4>Comments for this order:</h4><p>${order[1][1].replaceAll('&#010;', "<br>")}</p>`
@@ -125,14 +125,14 @@ async function printOrder (id, order) {
     const pdfPath = `${path}printed/print-${id}-${new Date().toLocaleTimeString().replaceAll(':', '_')}.pdf`
     await page.pdf({
       path: pdfPath,
-      format: 'A4',
+      displayHeaderFooter: true,
+      format: 'Letter',
       waitForFonts: false,
       printBackground: true,
-      displayHeaderFooter: true,
-      margin: { top: '1.3cm', right: '3cm', bottom: '1.3cm', left: '3cm' }
+      margin: { top: '1.5cm', right: '3cm', bottom: '1.5cm', left: '3cm' }
     })
     await browser.close()
-    if (process.env.SKIP_PRINT !== 'true') await print(pdfPath)
+    if (process.env.SKIP_PRINT !== 'true') await print(pdfPath, printer, ['-o sides=one-sided -o fit-to-page'])
     console.log(`Order ${id} printed successfully`)
   } catch (error) {
     console.error(`Error printing PDF for order #${id}:`, error)
@@ -404,7 +404,7 @@ const server = createServer((req, res) => {
                     const order = readOrderFile(orderId)
                     if (query.printId) {
                      content += `attempting to print order # ${orderId}`
-                     printOrder(orderId, order)
+                     printOrder(orderId, order, query.printer)
                     } else {
                       content += adminTable(['seq', ...order[0]], order.slice(2).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}`, query.print || 'seq', 'print')
                     }

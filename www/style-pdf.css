@@ -24,7 +24,7 @@ tr:first-child {font-weight: bold;}
   padding: 0 10px;
   border: 1px solid #7e7e7e;
   border-radius: 5px;
-  margin: 10px 0;
+  margin: 10px;
 }
 .alert div {
   font-size: 40px;
