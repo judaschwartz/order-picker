@@ -113,12 +113,11 @@ async function printOrder (id, order, printer = '') {
       }
     })
     const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
-    let html = `<title>Order ${orderIdPrefix}-${id} for ${order[1][0]}</title>`
+    let html = `<style>${fs.readFileSync('./www/style-pdf.css').toString()}</style>`
     html += order[order.length - 1][1] === 'YES' ? '<div class="alert"><div>&#9888;</div><p>This order includes a produce package.<br>Please proceed to the produce station<br>which is to your right when exiting</p></div>' : ''
     html += `<h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4><table>${picked.join('')}</table>`
     if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
     if (order[1][1]) html += `<h4>Comments for this order:</h4><p>${order[1][1].replaceAll('&#010;', "<br>")}</p>`
-    html += `<style>${fs.readFileSync('./www/style-pdf.css').toString()}</style>`
     const browser = await launch()
     const page = await browser.newPage()
     await page.setContent(html)
@@ -126,13 +125,15 @@ async function printOrder (id, order, printer = '') {
     await page.pdf({
       path: pdfPath,
       displayHeaderFooter: true,
+      headerTemplate: `<p style="width: 600px; margin: 8px auto 0;font-size: 24px;"># ${orderIdPrefix}-${id} for ${order[1][0]}</p>`,
+      footerTemplate: `<div style="margin: 0 auto 20px; width: 620px;"><p style="font-size: 13px; margin: 3px;"><span class="date"></span> Check the other side of this sheet for more information about your Kemach order<b style="float: right;margin: 0; font-size: 16px;"><span class="pageNumber"></span> of <span class="totalPages"></span><b/></p></div>`,
       format: 'Letter',
       waitForFonts: false,
       printBackground: true,
-      margin: { top: '1.5cm', right: '3cm', bottom: '1.5cm', left: '3cm' }
+      margin: { top: '2cm', right: '3cm', bottom: '1.8cm', left: '3cm' }
     })
     await browser.close()
-    if (process.env.SKIP_PRINT !== 'true') await print(pdfPath, printer, ['-o sides=one-sided -o fit-to-page'])
+    if (process.env.SKIP_PRINT !== 'true') await print(pdfPath, printer, ['-o sides=one-sided', '-o fit-to-page'])
     console.log(`Order ${id} printed successfully`)
   } catch (error) {
     console.error(`Error printing PDF for order #${id}:`, error)
@@ -396,8 +397,12 @@ const server = createServer((req, res) => {
                 let orderId = query.printId || query.viewId
                 if (orderId) {
                   if (!fs.existsSync(`${path}gen/${orderId}.csv`)) {
-                    if (!fs.existsSync(`${path}gen/${orderId}-combo.csv`)) {
+                    if (fs.existsSync(`${path}gen/${orderId}-combo.csv`)) {
+                      content += `order was moved to a combo order ${orderId}`
+                      orderId = `${orderId}-combo`
+                    } else {
                       orderId = ''
+                      content += `could not find order # ${orderId}`
                     }
                   }
                   if (orderId) {
@@ -408,7 +413,7 @@ const server = createServer((req, res) => {
                     } else {
                       content += adminTable(['seq', ...order[0]], order.slice(2).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}`, query.print || 'seq', 'print')
                     }
-                  } else {content += `could not find order # ${orderId}`}
+                  }
                 }
               } else {content = content.replace('class="menu"', 'class="menu active"')}
             } catch (e) {
