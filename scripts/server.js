@@ -162,7 +162,7 @@ const server = createServer((req, res) => {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             fs.writeFileSync(`${path}gen/${query.lastUser}.csv`, order.map(l => l.join(',')).join('\n'))
           }
-          printOrder(query.lastUser, order)
+          if (query.print) printOrder(query.lastUser, order)
           const pickIndex = pickLine.findIndex(p => p[1] === query.lastUser)
           if (pickIndex > -1) {
             const completed = pickLine.splice(pickIndex, 1)[0]

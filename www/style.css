@@ -267,3 +267,15 @@ div.qty-box, table .qty-box div {
 #p-name span {
   padding: 15px;
 }
+
+#print-check {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+}
+
+#print-check input {
+  width: 22px;
+  height: 22px;
+  margin: 3px 8px 5px;
+}
