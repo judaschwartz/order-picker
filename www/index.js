@@ -1,5 +1,6 @@
 const url = new URL(location.href)
 const user = url.searchParams.get('user')
+const aisle = url.searchParams.get('aisle')
 const picker = url.searchParams.get('picker')
 if (picker) {
   url.searchParams.delete('picker')
@@ -20,6 +21,7 @@ function validateForm(event) {
 }
 window.addEventListener('load', function() {
   [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
+  document.querySelector('#aisle').value = aisle
 })
 
 function increment(input = document.getElementById('qty')) {

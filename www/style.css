@@ -40,6 +40,7 @@ p {
   font-size: 18px;
   display: block;
   height: 20px;
+  color: #ff8;
   visibility: hidden;
 }
 
@@ -221,6 +222,9 @@ div.qty-box, table .qty-box div {
   text-align: left;
 }
 
+#start-page input#picker {
+  width: 120px;
+}
 #start-page form b {
   float: left;
   font-size: 40px;
@@ -243,6 +247,7 @@ div.qty-box, table .qty-box div {
   display: flex;
   padding: 0 5%;
   font-size: 22px;
+  max-width: 20%;
 }
 
 #start-page .sides input {

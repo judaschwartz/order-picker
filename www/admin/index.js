@@ -9,7 +9,7 @@ function toggleRefresh() {
   }
 }
 window.addEventListener('load', function() {
-  if (!['combo', 'print', 'volunteers', 'alerts'].includes(url.searchParams.get('page'))) {
+  if (!['combo', 'print', 'volunteers', 'alerts', 'block'].includes(url.searchParams.get('page'))) {
     autoRefresh = setInterval(() => {window.location.reload()}, (30 * 1000))
   } else {
     document.querySelector('#auto-reload').style.display = 'none'
@@ -30,7 +30,7 @@ window.addEventListener('load', function() {
       })
     })
   });
-  ['name', 'phone', 'email', 'age', 'hasOrder', 'volId', 'printId', 'prodId', 'itmAlert', 'itmKey', 'qty', 'remove', 'id1', 'id2'].forEach(param => url.searchParams.delete(param))
+  ['name', 'phone', 'email', 'printer', 'age', 'hasOrder', 'volId', 'block', 'unblock', 'printId', 'prodId', 'itmAlert', 'itmKey', 'qty', 'remove', 'id1', 'id2'].forEach(param => url.searchParams.delete(param))
   window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
 })
 function page(page) {
