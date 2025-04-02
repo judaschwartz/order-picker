@@ -22,7 +22,7 @@ function validateForm(event) {
 }
 
 window.addEventListener('load', function() {
-  setTimeout(() => {document.getElementById('start-page').innerHTML = `<p>Timed out</p><a href="/?deleteUser=${document.querySelector('#user').value}&picker=${document.querySelector('#picker').value}">Back to START an order</a>`}, 60000)
+  setTimeout(() => {document.getElementById('start-page').innerHTML = `<p>Timed out</p><a href="/?deleteUser=${document.querySelector('#user').value}&picker=${document.querySelector('#picker').value}">Back to START an order</a>`}, 90000)
   document.querySelector('#user').addEventListener('change', function () {
     const user = parseInt(this.value.trim())
     if (orders[user]) {

@@ -335,13 +335,13 @@ const server = createServer((req, res) => {
                 content += fs.readFileSync('./www/admin/alerts.html').toString()
                 content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
               } else if (query.page?.startsWith('block')) {
-                if (query.block) {
+                if (query.block && !blocked.includes(query.block)) {
                   blocked.push(query.block)
                   content += `added ${query.block} to blocked list`
                   console.log('added', query.block, 'to blocked list')
                   fs.writeFileSync(`${path}blocked.txt`, blocked.join(','))
                 }
-                if (query.unblock) {
+                if (query.unblock && blocked.includes(query.unblock)) {
                   blocked.splice(blocked.indexOf(query.unblock), 1)
                   content += `removed ${query.unblock} from blocked list`
                   console.log('removed', query.unblock, 'from blocked list')
