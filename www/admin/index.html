@@ -10,16 +10,6 @@
 </head>
 <body>
   <header>
-    <div class="burger" onclick="document.querySelector('.menu').classList.add('active')">&#9776;</div>
+    <div class="burger" onclick="window.location.href = '/kadmin'">&#9776;</div>
     <label id="auto-reload"><input type="checkbox" onclick="toggleRefresh()" checked>Auto Refresh Page</label>
-    <ul class="menu">
-      <li onclick="page('volunteers')">Volunteers</li>
-      <li onclick="page('alerts')">Product Alerts</li>
-      <li onclick="page('combo')">Combine two orders</li>
-      <li onclick="page('print')">Print an order</li>
-      <li onclick="page('cars')">Orders in progress</li>
-      <li onclick="page('orders')">All orders</li>
-      <li onclick="page('items')">Manage Inventory</li>
-      <li onclick="page('block')">Hold back orders</li>
-    </ul>
   </header>

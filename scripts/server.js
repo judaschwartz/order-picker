@@ -73,16 +73,14 @@ function pickDuration (completed) {
 
 function adminTable (headers, data, name, col, id) {
   try {
-    c = headers.findIndex(h => h === col.replace(/^A-/,''))
-    if (c < 0) c = 0
-    if (typeof Number(data[0]?.[c]) === 'number' && !isNaN(Number(data[0]?.[c]))) {
-      data = data.sort((a, b) => Number(a[c]) - Number(b[c]))
-    } else if (Number(data[0]?.[c]?.replaceAll(':', ''))) {
-      data = data.sort((a, b) => (a[c].replaceAll(':', '')) - Number(b[c].replaceAll(':', '')))
-    } else if (Number(data[0]?.[c]?.split(' ')?.[0]?.replace(/^A/, ''))) {
-      data = data.sort((a, b) => Number(a[c].split(' ')[0].replace(/^A/,'')) - Number(b[c].split(' ')[0].replace(/^A/,'')))
-    } else {
-      data = data.sort((a, b) => a[c]?.toLowerCase() > b[c]?.toLowerCase() ? 1 : -1)
+    const index = headers.findIndex(h => h === col.replace(/^A-/,''))
+    if (index > -1) {
+      data = data.sort((a, b) => {
+        const aValue = Number(String(a[index] || '').split(' ')[0].replace(/[:^A]/g, ''))
+        const bValue = Number(String(b[index] || '').split(' ')[0].replace(/[:^A]/g, ''))
+        if (!isNaN(aValue) && !isNaN(bValue)) return aValue - bValue
+        return a[index]?.toLowerCase() > b[index]?.toLowerCase() ? 1 : -1
+      })
     }
   } catch (e) {console.error('error sorting table', e)}
   data = [headers, ...(col.slice(0, 2) === 'A-' ? data.reverse() : data)].map(l => l.join('</td><td>')).join("</td></tr><tr><td>")
@@ -333,7 +331,7 @@ const server = createServer((req, res) => {
                   fs.writeFileSync(`${path}alerts.json`, JSON.stringify(prodAlerts, null, 2))
                 }
                 content += fs.readFileSync('./www/admin/alerts.html').toString()
-                content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', 'ID', 'alerts')
+                content += adminTable(['delete','ID','alert'], Object.entries(prodAlerts).map(a => ['&#10060;', ...a]), '', query.alerts || '', 'alerts')
               } else if (query.page?.startsWith('block')) {
                 if (query.block && !blocked.includes(query.block)) {
                   blocked.push(query.block)
@@ -350,13 +348,13 @@ const server = createServer((req, res) => {
                 content += fs.readFileSync('./www/admin/block.html').toString()
                 content += adminTable(['unblock','ID'], blocked.map(b => [`<a href="/kadmin?page=block&unblock=${b}">&#10060;</a>`, b]), '', 'ID', 'blocked')
               } else if (query.page?.startsWith('car')) {
-                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '1').map(l => l.slice(0, -1)), 'Row 1:', query.row1 || 'start', 'row1')
-                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '2').map(l => l.slice(0, -1)), 'Row 2:', query.row2 || 'start', 'row2')
-                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '3').map(l => l.slice(0, -1)), 'Row 3:', query.row3 || 'start', 'row3')
+                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '1').map(l => l.slice(0, -1)), 'Row 1:', query.row1 || '', 'row1')
+                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '2').map(l => l.slice(0, -1)), 'Row 2:', query.row2 || '', 'row2')
+                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '3').map(l => l.slice(0, -1)), 'Row 3:', query.row3 || '', 'row3')
               } else if (query.page?.startsWith('order')) {
                 const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
                 const unqIds = [...new Set(completed.map(o => o[1]))]
-                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'A-end', 'orders')
+                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || '', 'orders')
                 const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
                 content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
               } else if (query.page?.startsWith('item')) {
@@ -371,7 +369,7 @@ const server = createServer((req, res) => {
                 content += adminTable(itmTotals[0], itmTotals.slice(1).map(p => {
                   const floor = p.slice(4).map((t, i) => {
                     if (i % 2 === p[0].replace('A', '') % 2) {
-                      return `<button onclick="adjust('${p[0]}', '${i}')">change</button>` + (t > 9 ? t : `<b class="alert">${t}</b>`)
+                      return `${t} <button ${t < 10 ? `class="alert"` : ''} onclick="adjust('${p[0]}', '${i}')">change</button>`
                     }
                   })
                   return [...p.slice(0, 4), ...floor]
@@ -401,8 +399,8 @@ const server = createServer((req, res) => {
                   return [...v, duration]
                 })
                 content += fs.readFileSync('./www/admin/volunteers.html').toString()
-                content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.volunteers || 'A-ID', 'active')
-                content += adminTable([...volunteers[0], 'Time'], inactive, `${inactive.length} Finished Volunteers`, query.volunteers || 'A-ID', 'done')
+                content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.active || 'A-ID', 'active')
+                content += adminTable([...volunteers[0], 'Time'], inactive, `${inactive.length} Finished Volunteers`, query.done || 'A-ID', 'done')
               } else if (query.page?.startsWith('combo')) {
                 if (query.id1 && query.id2) {
                   content += combineOrders(Math.min(query.id1, query.id2).toString(), Math.max(query.id1, query.id2).toString())
@@ -427,11 +425,11 @@ const server = createServer((req, res) => {
                      content += `attempting to print order # ${orderId}`
                      printOrder(orderId, order, query.printer)
                     } else {
-                      content += adminTable(['seq', ...order[0]], order.slice(2).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}`, query.print || 'seq', 'print')
+                      content += adminTable(['seq', ...order[0]], order.slice(2).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}`, query.print || '', 'print')
                     }
                   }
                 }
-              } else {content = content.replace('class="menu"', 'class="menu active"')}
+              } else content += fs.readFileSync('./www/admin/menu.html').toString()
             } catch (e) {
               content += `THERE WAS AN ERROR RENDERING ADMIN PAGE ${query.page}<br>` + e.stack.replaceAll('\n', '<br>')
             }

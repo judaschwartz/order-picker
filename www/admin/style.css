@@ -107,7 +107,7 @@ header input{
 }
 
 .menu {
-  display: none;
+  display: flex;
   list-style-type: none;
   flex-direction: column;
   position: fixed;
@@ -122,10 +122,6 @@ header input{
   overflow: scroll;
 }
 
-.menu.active {
-  display: flex;
-}
-
 #itms button {
   float: right;
 }
@@ -133,5 +129,4 @@ header input{
 .alert {
   color: red;
   background: #df0;
-  padding: 5px 10px;
 }
