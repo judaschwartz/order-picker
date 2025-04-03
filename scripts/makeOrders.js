@@ -35,8 +35,8 @@ orders.forEach(l => {
           itmTotals[names[i][0]][6] += third
           itmTotals[names[i][0]][8] += third
         } else {
-          itmTotals[names[i][0]][5] += third
-          itmTotals[names[i][0]][7] += third * 2
+          itmTotals[names[i][0]][5] += third * 2
+          itmTotals[names[i][0]][7] += third
         }
       } else {
         if (names[i][3]) {
@@ -60,7 +60,7 @@ names.forEach((n) => {
     else console.log('totals for ', n[2], ' are the same ', n[4])
 })
 fs.writeFileSync(`${path}itmTotals.csv`, [
-  'id,name,ordered,picked,col1,col2,col3,col4,col5',
+  'id,name,ordered,picked,col5,col4,col3,col2,col1',
   ...Object.values(itmTotals).map(r => [...r.slice(0, 2), ...r.slice(2).map(v => Math.round(v))])
 ].join('\n'))
 console.log(`${orders.length} Orders Created`)

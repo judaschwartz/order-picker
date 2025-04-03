@@ -48,8 +48,7 @@ function combineOrders (id1, id2) {
     const name = `${ord1[1][0]} & ${ord2[1][0]}`.trim()
     const comboId = id1 + id2.padStart(3 * Math.ceil(id2.length / 3), '0')
     fs.writeFileSync(`${path}gen/${comboId}.csv`, [ord1[0], [name,,,ttl,], ...newOrder].map(l => l.join(',')).join("\n"))
-    delete ordersJson[id1]
-    delete ordersJson[id2]
+    blocked.push(id1, id2)
     ordersJson[comboId] = name
     rawOrders = JSON.stringify(ordersJson, null, 2)
     totalOrders--
