@@ -22,7 +22,7 @@ orders.forEach(l => {
   jsonFile[parseInt(l.at(-1))] = name
   let ttl = 0
   const itms = l.slice(3, -2)
-  if (l.at(-2).trim() === 'Y') itms.push(6,5,4,3,2,1)
+  if (l.at(-2).trim() === 'Y') itms.push(1,1,1,1,1,1)
     else itms.push(0,0,0,0,0,0)
   const order = itms.map((n, i) => {
     const qty = parseInt(n) ? parseInt(n) : ''

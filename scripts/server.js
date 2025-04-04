@@ -155,8 +155,9 @@ const server = createServer((req, res) => {
           const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
           const volunteerIndex = volunteers.findIndex(v => String(v[0]) === pickerId)
           if (volunteerIndex > -1) volunteers[volunteerIndex][8]++
-          if (typeof comment !== 'undefined' && comment !== order[1][1]) {
+          if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
+            console.info(`comment for order #${query.lastUser}: ${comment}`)
             fs.writeFileSync(`${path}gen/${query.lastUser}.csv`, order.map(l => l.join(',')).join('\n'))
           }
           if (query.print) printOrder(query.lastUser, order)
@@ -208,8 +209,9 @@ const server = createServer((req, res) => {
             fs.writeFileSync(`${path}pickLine.csv`, pickLine.join('\n'))
           }
         }
-        if (typeof comment !== 'undefined' && comment !== order[1][1]) {
+        if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
           changed = true
+          console.info(`comment for order #${user}: ${comment}`)
           order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/[\n\r]/g, '&#010;')
         }
         const qty = parseInt(query.qty || 0)
