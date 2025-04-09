@@ -16,7 +16,7 @@ if (!fs.existsSync(`${path}completed-orders.csv`)) {
   fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
 }
 if (!fs.existsSync(`${path}volunteers.csv`)) {
-  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,Ttl\n998,Admin,,,,,,,0')
+  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,[OrdId]\n998,Admin,,,,,,,[]')
 }
 if (!fs.existsSync(`${path}pickLine.csv`)) {
   fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
@@ -29,7 +29,11 @@ const itmsIndex = JSON.parse(`{${itmTotals.map((l, i) => `"${l[0]}": "${i}"`).jo
 let rawOrders = fs.readFileSync(`${path}orders.json`).toString()
 const ordersJson = JSON.parse(rawOrders)
 let totalOrders = Object.keys(ordersJson).length
-const volunteers = fs.readFileSync(`${path}volunteers.csv`).toString().split('\n').map(l => l.split(','))
+const volunteers = fs.readFileSync(`${path}volunteers.csv`).toString().split('\n').map(l => {
+  const row = l.replace(/[\[\]"]/g, '').split(',')
+  return [...row.slice(0, 8), [...row.slice(8).filter(Boolean)]]
+})
+
 let rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
 let volunteersJson = JSON.parse(`{${rawVolunteers}}`)
 
@@ -154,7 +158,7 @@ const server = createServer((req, res) => {
           const order = readOrderFile(query.lastUser)
           const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
           const volunteerIndex = volunteers.findIndex(v => String(v[0]) === pickerId)
-          if (volunteerIndex > -1) volunteers[volunteerIndex][8]++
+          if (volunteerIndex > -1) volunteers[volunteerIndex][8].push(query.lastUser)
           if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             console.info(`comment for order #${query.lastUser}: ${comment}`)
@@ -356,7 +360,7 @@ const server = createServer((req, res) => {
                 const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
                 const unqIds = [...new Set(completed.map(o => o[1]))]
                 content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || '', 'orders')
-                const coming = Object.entries(ordersJson).filter(k => k[0] && !unqIds.includes(k[0]))
+                const coming = Object.entries(ordersJson).filter(k => k[0] && ![...blocked, ...unqIds].includes(k[0]))
                 content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
               } else if (query.page?.startsWith('item')) {
                 content += fs.readFileSync('./www/admin/items.html').toString()
@@ -379,25 +383,25 @@ const server = createServer((req, res) => {
                 if (query.name) {
                   const id = volunteers.length
                   console.log('adding volunteer ', query.name, ' with id ', id)
-                  volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.age, query.hasOrder, new Date().toTimeString().slice(0, 5),,0])
+                  volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.age, query.hasOrder, new Date().toTimeString().slice(0, 5),,[]])
                   rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
                   volunteersJson = JSON.parse(`{${rawVolunteers}}`)
-                  fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(l => l.join(',')).join('\n'))
+                  fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(v => [...v.slice(0, 8), `[${v.slice(8).join(',')}]`]).join('\n'))
                   content += `Added volunteer ${query.name} with ID ${id}`
                 } else if (query.volId) {
                   content += `Checked out volunteer with ID ${query.volId}`
                   const volunteerIndex = volunteers.findIndex(v => String(v[0]) === query.volId)
                   console.log('checking out volunteer ', query.volId, volunteerIndex)
                   volunteers[volunteerIndex][7] = new Date().toTimeString().slice(0, 5)
-                  fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(l => l.join(',')).join('\n'))
+                  fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(v => [...v.slice(0, 8), `[${v.slice(8).join(',')}]`]).join('\n'))
                 }
                 const active = volunteers.slice(2).filter(v => !v[7])
-                  .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v[8]])
+                  .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v[8].length])
                 const inactive = volunteers.slice(2).filter(v => v[7]).map(v => {
                   const start = v[6].split(':').map(Number)
                   const end = v[7].split(':').map(Number)
                   const duration = `${end[0] - (end[1] < start[1] ? 1 : 0) - start[0]}:${String(end[1] + (end[1] < start[1] ? 60 : 0) - start[1]).padStart(2, '0')}`
-                  return [...v, duration]
+                  return [...v.slice(0, -1), v.at(-1).length, duration]
                 })
                 content += fs.readFileSync('./www/admin/volunteers.html').toString()
                 content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.active || 'A-ID', 'active')
