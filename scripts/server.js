@@ -5,29 +5,24 @@ const { networkInterfaces } = require('os')
 const { launch } = require('puppeteer')
 const { print } = require("unix-print")
 
+const soulName = `<p style="width: 600px; text-align: center; margin: 8px auto 0;font-size: 14px;">Kemach this year is dedicated L'ilui Nishmas<br>ר' יחזקאל בן ר' יחיאל אריה הכהן<br>ישראל מרדכי בן ר' יצחק</p>`
 const today = new Date().toLocaleDateString().split('/')
 const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
 const path = `orders/${orderIdPrefix}/`
 if (!fs.existsSync(`${path}orders.json`)) {
   return console.log('orders.json file not found you need to execute the "npm run init" command to create the orders')
 }
-if (!fs.existsSync(`${path}printed`)) {fs.mkdirSync(`${path}printed`)}
-if (!fs.existsSync(`${path}completed-orders.csv`)) {
-  fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
-}
-if (!fs.existsSync(`${path}volunteers.csv`)) {
-  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,[OrdId]\n998,Admin,,,,,,,[]')
-}
-if (!fs.existsSync(`${path}pickLine.csv`)) {
-  fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
-}
-const blocked = fs.existsSync(`${path}blocked.txt`) ? fs.readFileSync(`${path}blocked.txt`).toString().split(',').filter(Boolean) : []
+if (!fs.existsSync(`${path}printed`)) fs.mkdirSync(`${path}printed`)
+const blocked = fs.readFileSync(`${path}blocked.txt`).toString().split(',').filter(Boolean)
 const pickLine = fs.readFileSync(`${path}pickLine.csv`).toString().split('\n').map(l => l.split(','))
-const prodAlerts = fs.existsSync(`${path}alerts.json`) ? JSON.parse(fs.readFileSync(`${path}alerts.json`).toString()) : {}
-const itmTotals = fs.existsSync(`${path}itmTotals.csv`) ? fs.readFileSync(`${path}itmTotals.csv`).toString().split('\n').map(l => l.split(',')) : []
-const itmsIndex = JSON.parse(`{${itmTotals.map((l, i) => `"${l[0]}": "${i}"`).join(',')}}`)
+const prodAlerts = JSON.parse(fs.readFileSync(`${path}alerts.json`).toString())
+// commented code is for 3 lane csv for itmTotals
+// const itmTotals = fs.existsSync(`${path}itmTotals.csv`) ? fs.readFileSync(`${path}itmTotals.csv`).toString().split('\n').map(l => l.split(',')) : []
+// const itmsIndex = JSON.parse(`{${itmTotals.map((l, i) => `"${l[0]}": "${i}"`).join(',')}}`)
 let rawOrders = fs.readFileSync(`${path}orders.json`).toString()
 const ordersJson = JSON.parse(rawOrders)
+const itmsJson = JSON.parse(fs.readFileSync(`${path}itmTotals.json`).toString())
+const startTotals = JSON.parse(fs.readFileSync(`${path}itmTotals.json`).toString())
 let totalOrders = Object.keys(ordersJson).length
 const volunteers = fs.readFileSync(`${path}volunteers.csv`).toString().split('\n').map(l => {
   const row = l.replace(/[\[\]"]/g, '').split(',')
@@ -45,7 +40,8 @@ function combineOrders (id1, id2) {
     const newOrder = ord1.slice(2).map((l, i) => {
       const ordered = (Number(l[1]) || 0) + (Number(ord2[i + 2]?.[1]) || 0)
       const picked = (Number(l[2]) || 0) + (Number(ord2[i + 2]?.[2]) || 0)
-      //if (l[1]  === 'YES' || ord2[i + 2]?.[1] === 'YES') return [l[0], 'YES', , l[3], l[4]]
+      // for produce when not in warehouse
+      // if (l[1]  === 'YES' || ord2[i + 2]?.[1] === 'YES') return [l[0], 'YES', , l[3], l[4]]
       return [l[0], ordered, picked, l[3], l[4]]
     })
     const ttl = Number(ord1[1][3]) + Number(ord2[1][3])
@@ -115,7 +111,7 @@ async function printOrder (id, order, printer = '') {
         ttl -= missed
       }
     })
-    const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
+    const pickerId = order[1]?.[2]?.split(':')?.at(-1)?.split('-')?.[0] || '998'
     let html = `<style>${fs.readFileSync('./www/style-pdf.css').toString()}</style>`
     html += `<h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4><table>${picked.join('')}</table>`
     if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
@@ -127,7 +123,7 @@ async function printOrder (id, order, printer = '') {
     await page.pdf({
       path: pdfPath,
       displayHeaderFooter: true,
-      headerTemplate: `<p style="width: 680px; margin: 8px auto 0;font-size: 22px;"># ${orderIdPrefix}-${id} for ${order[1][0]}</p>`,
+      headerTemplate: `<p style="width: 650px; padding-left: 30px; margin: 8px auto;font-size: 20px;"># ${orderIdPrefix}-${id} for ${order[1][0]}</p>${soulName}`,
       footerTemplate: `<div style="margin: 0 auto 20px; width: 620px;"><p style="font-size: 13px; margin: 3px;"><span class="date"></span> Check the other side of this sheet for more information about your Kemach order<b style="float: right;margin: 0; font-size: 16px;"><span class="pageNumber"></span> of <span class="totalPages"></span><b/></p></div>`,
       format: 'Letter',
       waitForFonts: false,
@@ -156,9 +152,11 @@ const server = createServer((req, res) => {
         if (user) warn = `could not find a record for order #${user} or order is blocked`
         if (query.lastUser) { // lastUser is the last order that was picked
           const order = readOrderFile(query.lastUser)
-          const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
-          const volunteerIndex = volunteers.findIndex(v => String(v[0]) === pickerId)
-          if (volunteerIndex > -1) volunteers[volunteerIndex][8].push(query.lastUser)
+          const pickerIds = order[1]?.[2]?.split(':')?.at(-1)?.split('-') || ['998']
+          pickerIds.forEach(pickerId => {
+            const volInd = volunteers.findIndex(v => String(v[0]) === pickerId)
+            if (volInd > -1) volunteers[volInd][8] = Array.from(new Set([...volunteers[volInd][8], query.lastUser]))
+          })
           if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             console.info(`comment for order #${query.lastUser}: ${comment}`)
@@ -198,13 +196,14 @@ const server = createServer((req, res) => {
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
           warn += order[1][3] > 50 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
           changed = true
+          const assist = query.assist ? `,${query.assist}`.replaceAll(',', '-') : ''
           if (order[1][2]) {
-            order[1][2] += `:${query.picker}`
+            order[1][2] += `:${query.picker}${assist}`
             const leftOff = order.slice(2).findIndex(r => Number(r[1]) && Number(r[1]) !== Number(r[2]))
             lastItm = leftOff > 1 ? leftOff + 1 : 1
             console.warn(`DUPLICATE: This is pick #${order[1][2].split(':').length + 1} for this order starting from after item ${order[lastItm][0]}`)
           } else {
-            order[1][2] = query.picker
+            order[1][2] = query.picker + assist
           }
           if (pickLine.find(o => o[1].includes(String(user)))) {
             console.error(`order #${user} is already in the picking line`)
@@ -227,9 +226,11 @@ const server = createServer((req, res) => {
             console.warn(`DEVIATION: picked ${qty} ${order[lastItm][0]} for order #${user} but they ordered ${parseInt(order[lastItm][1] || 0)}`)
           }
           order[lastItm][2] = qty
-          itmTotals[lastItm - 1][3] -= -(qty - lstQty)
-          const even = Number(order[lastItm][3].replace('A', '')) % 2
-          itmTotals[lastItm - 1][(query.aisle * 2) + even + ((query.aisle < 3 || !even) * 2)] -= (qty - lstQty)
+          itmsJson[`${order[lastItm][3]}-${order[lastItm][0]}`] -= (qty - lstQty)
+//  commented code is for 3 lane csv for itmTotals
+//  itmTotals[lastItm - 1][3] -= -(qty - lstQty)
+//  const even = Number(order[lastItm][3].replace('A', '')) % 2
+//  itmTotals[lastItm - 1][(query.aisle * 2) + even + ((query.aisle < 3 || !even) * 2)] -= (qty - lstQty)
         }
         if (changed) {
           fs.writeFileSync(`${path}gen/${user}.csv`, order.map(l => l.join(',')).join('\n'))
@@ -250,15 +251,16 @@ const server = createServer((req, res) => {
         let headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
         if (query.api) { // api pick
           filePath = './api.html'
-        } else if (itm === -1 || lastItm === order.length - 2) { // after all items picked confirmation page
-          const pickerId = order[1]?.[2]?.split(':')?.at(-1) || '998'
+        } else if (itm === -1 || lastItm === order.length - 1) { // after all items picked confirmation page
+          const pickerId = order[1]?.[2]?.split(':')?.at(-1)?.split('-')?.[0] || '998'
           var next = `${volunteersJson[pickerId]} (# ${pickerId})`
           itm = order.length - 1
           console.info(`Picker ${next} on confirmation page for order #${user}`)
           warn += done.length ? '' : 'This order has no items to pick'
           done = `<table>${headers}${done.join('')}</table>`
           filePath = './end-index.html'
-          fs.writeFileSync(`${path}itmTotals.csv`, itmTotals.join('\n'))
+          fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmsJson, null, 2))
+//  fs.writeFileSync(`${path}itmTotals.csv`, itmTotals.join('\n'))
         } else {
           done = `<table>${headers}${done.reverse().join('')}</table>`
           itm = itm + lastItm + 1
@@ -355,33 +357,40 @@ const server = createServer((req, res) => {
               } else if (query.page?.startsWith('car')) {
                 content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '1').map(l => l.slice(0, -1)), 'Row 1:', query.row1 || '', 'row1')
                 content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '2').map(l => l.slice(0, -1)), 'Row 2:', query.row2 || '', 'row2')
-                content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '3').map(l => l.slice(0, -1)), 'Row 3:', query.row3 || '', 'row3')
+//  content += adminTable(['name','orderId','picker','qty','start'], pickLine.filter(l => l[5] === '3').map(l => l.slice(0, -1)), 'Row 3:', query.row3 || '', 'row3')
               } else if (query.page?.startsWith('order')) {
                 const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
                 const unqIds = [...new Set(completed.map(o => o[1]))]
-                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || '', 'orders')
+                content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${totalOrders}`, query.orders || 'A-end', 'orders')
                 const coming = Object.entries(ordersJson).filter(k => k[0] && ![...blocked, ...unqIds].includes(k[0]))
                 content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${totalOrders}`, query.waiting || 'orderID', 'waiting')
               } else if (query.page?.startsWith('item')) {
-                content += fs.readFileSync('./www/admin/items.html').toString()
-                if (query.itmKey && Number(query.qty)) {
-                  const split = query.itmKey.split('-')
-                  itmTotals[itmsIndex[split[0]]][Number(split[1]) + 4] -= -parseInt(query.qty)
-                  content += `changed qty for "${query.itmKey}" by ${query.qty}`
-                  console.log(`changed qty for "${query.itmKey}" by ${query.qty}`)
-                  fs.writeFileSync(`${path}itmTotals.csv`, itmTotals.join('\n'))
-                }
-                content += adminTable(itmTotals[0], itmTotals.slice(1).map(p => {
-                  const floor = p.slice(4).map((t, i) => {
-                    if (i % 2 === p[0].replace('A', '') % 2) {
-                      return `${t} <button ${t < 10 ? `class="alert"` : ''} onclick="adjust('${p[0]}', '${i}')">change</button>`
-                    }
-                  })
-                  return [...p.slice(0, 4), ...floor]
-                }), 'Totals picked by Item:', query.itms || 'id', 'itms')
+//   commented code is for 3 lane csv for itmTotals
+// content += fs.readFileSync('./www/admin/items.html').toString()
+// if (query.itmKey && Number(query.qty)) {
+//   const split = query.itmKey.split('-')
+//   itmTotals[itmsIndex[split[0]]][Number(split[1]) + 4] -= -parseInt(query.qty)
+//   content += `changed qty for "${query.itmKey}" by ${query.qty}`
+//   console.log(`changed qty for "${query.itmKey}" by ${query.qty}`)
+//   fs.writeFileSync(`${path}itmTotals.csv`, itmTotals.join('\n'))
+// }
+// content += adminTable(itmTotals[0], itmTotals.slice(1).map(p => {
+//   const floor = p.slice(4).map((t, i) => {
+//     if (i % 2 === p[0].replace('A', '') % 2) {
+//       return `${t} <button ${t < 10 ? `class="alert"` : ''} onclick="adjust('${p[0]}', '${i}')">change</button>`
+//     }
+//   })
+//   return [...p.slice(0, 4), ...floor]
+// }), 'Totals picked by Item:', query.itms || 'id', 'itms')
+                content += adminTable(['id','name', 'qtyOrdered','qtyPicked', 'qtyLeft'], Object.entries(itmsJson).map(i => [
+                  ...i[0].split('-'),
+                  startTotals[i[0]],
+                  startTotals[i[0]] - i[1],
+                  i[1]
+                ]), 'Totals by Item:', query.itms || 'id', 'itms')
               } else if (query.page?.startsWith('volunteer')) {
                 if (query.name) {
-                  const id = volunteers.length
+                  const id = volunteers.length + 8
                   console.log('adding volunteer ', query.name, ' with id ', id)
                   volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.age, query.hasOrder, new Date().toTimeString().slice(0, 5),,[]])
                   rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
@@ -396,7 +405,7 @@ const server = createServer((req, res) => {
                   fs.writeFileSync(`${path}volunteers.csv`, volunteers.map(v => [...v.slice(0, 8), `[${v.slice(8).join(',')}]`]).join('\n'))
                 }
                 const active = volunteers.slice(2).filter(v => !v[7])
-                  .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v[8].length])
+                  .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v.at(-1).length])
                 const inactive = volunteers.slice(2).filter(v => v[7]).map(v => {
                   const start = v[6].split(':').map(Number)
                   const end = v[7].split(':').map(Number)

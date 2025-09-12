@@ -222,7 +222,7 @@ div.qty-box, table .qty-box div {
   text-align: left;
 }
 
-#start-page input#picker {
+#start-page input#picker, #start-page input.assist {
   width: 120px;
 }
 #start-page form b {
@@ -247,7 +247,7 @@ div.qty-box, table .qty-box div {
   display: flex;
   padding: 0 5%;
   font-size: 22px;
-  max-width: 20%;
+  max-width: 40%;
 }
 
 #start-page .sides input {
@@ -260,8 +260,16 @@ div.qty-box, table .qty-box div {
   height: 40px;
 }
 
-#p-name {
+#p-name, #assist-box > div {
   display: flex;
+}
+
+#assist-box p {
+  text-align: left;
+  background: #81a4cc;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 0 0 20px;
 }
 
 #p-name span {

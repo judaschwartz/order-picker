@@ -12,13 +12,17 @@ function validateForm(event) {
   document.getElementById('user').value = user
   document.getElementById('name').value = name
   document.getElementById('picker').value = picker
-  if (!user || !name || !picker || !document.querySelector('input[name="aisle"]:checked')) {
+  if (!user || !name || !picker) {
     alert('Please enter a value for all the fields.')
     event.preventDefault()
   } else if (user && blocked.includes(user)) {
     alert('This order # is blocked. Please ask driver to pull to side and wait for management to unblock this order.')
     event.preventDefault()
   }
+}
+function addAssist() {
+  const html = `<div><b onclick="this.parentElement.remove();">X</b><input onchange="this.nextElementSibling.innerText = volunteers[this.value];" type="number" name="assist" class="assist" value=""><span</span></div>`
+  document.getElementById('assist-box').insertAdjacentHTML('beforeEnd', html)
 }
 
 window.addEventListener('load', function() {
