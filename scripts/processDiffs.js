@@ -3,10 +3,7 @@ const today = new Date().toLocaleDateString().split('/')
 const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
 const path = `orders/${orderIdPrefix}/`
 const orderIds = Object.keys(JSON.parse(fs.readFileSync(`./${path}/orders.json`).toString()))
-const volunteers = fs.readFileSync(`${path}volunteers.csv`).toString().split('\n').map(l => {
-  const row = l.replace(/[\[\]"]/g, '').split(',')
-  return [...row.slice(0, 8), [...row.slice(8).filter(Boolean)]]
-})
+const volunteers = fs.readFileSync(`${path}volunteers.csv`).toString().split('\n').map(l => l.split(','))
 let volunteersJson = JSON.parse(`{${volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')}}`)
 const resultsByUser = ['Order #, Picker, Comments, Missing items']
 const resultsByItm = {}

@@ -2,8 +2,13 @@ const url = new URL(location.href)
 const user = url.searchParams.get('user')
 const aisle = url.searchParams.get('aisle')
 const picker = url.searchParams.get('picker')
+const assist = url.searchParams.get('assist')
 if (picker) {
   url.searchParams.delete('picker')
+  window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
+}
+if (assist) {
+  url.searchParams.delete('assist')
   window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
 }
 function validateForm(event) {
@@ -40,7 +45,7 @@ function goBack() {
   if (document.referrer.includes('user=')) {
     history.go(-1)
   } else {
-    location.href = url.pathname + `?deleteUser=${user}&picker=${picker}`
+    location.href = url.pathname + `?deleteUser=${user}&picker=${picker}&assist=${assist}`
   }
 }
 

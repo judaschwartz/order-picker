@@ -10,6 +10,7 @@
 <body>
   <div class="picker-app">
     <h1>Finished order #USER for ULAST</h1>
+    <p class="prod-name"><i>MUST Click submit button to print summary for cutomer</i></p>
     <div class="warn">WARNN</div>
     <form action="/">
       <input type="text" id="lastUser" name="lastUser" hidden value="USER">
@@ -18,6 +19,7 @@
       <label for="picker">Picked by</label>
       <input type="text" value="NEXT_LIST" disabled>
       <input type="hidden" id="picker" name="picker">
+      <input type="hidden" id="assist" name="assist">
       <button type="submit">Submit and Complete order #USER</button>
       <label for="print" id="print-check"><input id="print" name="print" checked type="checkbox">Print order on submit</label>
     </form>
@@ -32,7 +34,9 @@
     if (document.querySelector('.discrepancy')) {
       alert('Not all items received, please double check that this is correct before completing order')
     }
-    document.getElementById('picker').value = 'NEXT_LIST'?.split('# ')?.at(-1)?.slice(0, -1)
+    const pickers = 'NEXT_LIST'?.split('# ')?.at(-1)?.slice(0, -1)?.split(',')
+    document.getElementById('picker').value = pickers?.[0]
+    document.getElementById('assist').value = pickers?.slice(1).join(',')
     window.history.forward() // Prevents user from going back to this page
     window.addEventListener('unload', function() {
       window.history.replaceState(null, '', '/no-back.html')

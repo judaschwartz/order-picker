@@ -1,29 +1,25 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const today = new Date().toLocaleDateString().split('/')
 const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
 const path = `orders/${orderIdPrefix}/`
-if (!fs.existsSync(`${path}gen`)) {
-  fs.mkdirSync(`${path}gen`, { recursive: true })
+if (!fs.existsSync(`${path}allOrders.csv`) || !fs.existsSync(`${path}nameSlot.csv`)) {
+  console.log('Missing allOrders.csv or nameSlot.csv in ', path, ' please add and try again')
+  process.exit()
 }
-if (process.argv[2] === 'fresh' || !fs.existsSync(`${path}completed-orders.csv`)) {
-  fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
-}
-if (process.argv[2] === 'fresh' || !fs.existsSync(`${path}volunteers.csv`)) {
-  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,[picked]\n998,Admin,,,,,,,[]')
-}
-if (process.argv[2] === 'fresh' || !fs.existsSync(`${path}pickLine.csv`)) {
-  fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
-}
-if (process.argv[2] === 'fresh' || !fs.existsSync(`${path}alerts.json`)) {
-  fs.writeFileSync(`${path}alerts.json`, JSON.stringify({}))
-}
-if (!fs.existsSync(`${path}blocked.txt`)) fs.writeFileSync(`${path}blocked.txt`, '')
+const oldPath = `${path}old/${new Date().toISOString().replace(/[:.]/g, '-')}/`
+fs.mkdirSync(oldPath, { recursive: true })
+fs.readdirSync(path).forEach(i => i !== 'old' && fs.moveSync(`${path}${i}`, `${oldPath}${i}`))
+fs.copyFileSync(`${oldPath}allOrders.csv`, `${path}allOrders.csv`)
+fs.copyFileSync(`${oldPath}nameSlot.csv`, `${path}nameSlot.csv`)
+fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
+fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,picked\n998,Admin,,,,,,,')
+fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
+fs.writeFileSync(`${path}alerts.json`, JSON.stringify({}))
+fs.writeFileSync(`${path}blocked.txt`, '')
+fs.writeFileSync(`${path}combined.txt`, '')
+fs.mkdirSync(`${path}gen`, { recursive: true })
 const orders = fs.readFileSync(`${path}allOrders.csv`).toString().trim().split("\n").filter(o => Number(o.split(',').slice(3, -2).join('')))
-const names = fs.readFileSync(`${path}nameSlot.csv`).toString().split("\n").slice(1).map(n => {
-  const row = n.split(',')
-// when side slots are added odd are side
-  return [row[0], `${row[1]}`, row[2].trim(), ''/* , !(row[1] % 2) ? 'SS' : '', row[3] */]
-})
+const names = fs.readFileSync(`${path}nameSlot.csv`).toString().split("\n").slice(1).map(n => n.split(',').map(i => i.trim()))
 
 // add test orders
 // orders.push(['test2', 'name', ...orders[0].split(',').slice(3, -1).map((n, i) => i),'Yes', '999'].join(','))
@@ -64,22 +60,28 @@ orders.forEach(l => {
       //   }
       // }
       const key = `${names[i][1]}-${names[i][2]}`
-      if (l.at(-1) !== '998') { // don't count test order
-        itmTotals[key] ? itmTotals[key] += qty : itmTotals[key] = qty
+      if (Number(l.at(-1)) < 990) { // don't count test order items
+        if (itmTotals[key]) {
+          itmTotals[key] += qty
+        } else {
+          itmTotals[key] = qty
+        }
       }
       ttl += qty
     }
-    return [names[i][0], names[i][2], qty, , names[i][1], names[i][3]]
+    return [names[i][0], names[i][2], qty, , names[i][1],]
   }).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(l => l.slice(1).join(','))
   fs.writeFileSync(`${path}gen/${parseInt(l.at(-1))}.csv`, ['name,ordered,picked,slot,ss', `${name},,,${ttl},`, ...order].join("\n"))
 })
 fs.writeFileSync(`${path}orders.json`, JSON.stringify(jsonFile, null, 2))
-// console.log('QTY Sanity Check')
-// names.forEach((n) => {
-//   const ttl = itmTotals[n[0]]
-//   if (ttl && n[4] && Number(n[4]) !== ttl[2]) console.log('totals for ', ttl[1], ' are NOT the same ', n[4], ttl[2])
-//     else console.log('totals for ', n[2], ' are the same ', n[4])
-// })
+console.log('QTY Sanity Check')
+names.forEach((n) => {
+  const key = `${n[1]}-${n[2]}`
+  const ttl = itmTotals[key]
+  if (ttl && n[3] && Number(n[3]) !== ttl) console.log('totals for '  + n[2] + ' are NOT the same ' + n[3] + ' ' + ttl)
+    else if (n[3]) console.log('totals for '  + n[2] + ' are the same ' + n[3])
+    else console.log('no totals for ' + n[2])
+})
 // fs.writeFileSync(`${path}itmTotals.csv`, [
 //   'id,name,ordered,picked,col5,col4,col3,col2,col1',
 //   ...Object.values(itmTotals).map(r => [...r.slice(0, 2), ...r.slice(2).map(v => Math.round(v))])
