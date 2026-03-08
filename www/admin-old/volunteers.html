@@ -1,0 +1,43 @@
+<div class="admin-form" id="register">
+  <h2>Volunteer Sign up</h2>
+  <form>
+    <label for="name">Name:</label>
+    <input required type="text" id="name" name="name" placeholder="First Last" />
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" placeholder="2161234567" />
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" placeholder="user@email.com" />
+    <label for="hasOrder"><input type="checkbox" id="hasOrder" name="hasOrder">Need to pick up own order</label>
+    <label for="age">Age range:</label>
+    <select name="age" id="age">
+      <option value="">AGE</option>
+      <option value="15">Under 20</option>
+      <option value="20">20s</option>
+      <option value="30">30s</option>
+      <option value="40">40s</option>
+      <option value="50">50s</option>
+      <option value="60">60s</option>
+      <option value="70">over 70</option>
+    </select><br>
+    <button type="button" onclick="addVol()">Add Volunteer</button>
+  </form>
+</div>
+<script>
+  function checkout(volId) {
+    if (confirm(`Are you sure you want to check out ${volId}?`)) {
+      url.searchParams.set('volId', volId)
+      window.location.href = url.href
+    }
+  }
+  function addVol() {
+    const name = document.querySelector('input[name="name"]').value.trim()
+    if (name) {
+      url.searchParams.set('name', name)
+      url.searchParams.set('phone', document.querySelector('input[name="phone"]').value.replace(/\D/g, ''))
+      url.searchParams.set('email', document.querySelector('input[name="email"]').value.trim().toLowerCase())
+      url.searchParams.set('age', document.querySelector('#age').value)
+      url.searchParams.set('hasOrder', document.querySelector('input[name="hasOrder"]').checked ? 'Yes' : 'No')
+      window.location.href = url.href
+    }
+  }
+</script>

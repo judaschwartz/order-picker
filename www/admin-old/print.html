@@ -1,0 +1,18 @@
+<h2>Print an Order</h2>
+<form style="display: flex; flex-wrap: wrap; align-content: space-between; justify-content: space-between; height: 140px;">
+  <input style="font-size: 36px;width: 200px;" type="number" id="printId" name="printId">
+  <button style="font-size: 30px;padding: 10px;" type="button" onclick="print('Canon_MF450_Series')">Print at end</button>
+  <button style="font-size: 30px;padding: 10px;" type="button" onclick="print(true, true)">View Order</button>
+  <button style="font-size: 30px;padding: 10px;" type="button" onclick="print('Brother_HL_L2350DW_series')">Print at start</button>
+</form><br><br>
+<script>
+  function print(printer = '', view = false) {
+    const printId = document.querySelector('input[name="printId"]').value.replace(/\D/g, '')
+    if (printId.trim()) {
+      url.searchParams.delete('viewId')
+      url.searchParams.set(view ? 'viewId' : 'printId', printId)
+      url.searchParams.set('printer', printer)
+      window.location.href = url.href
+    } else { alert('Enter an order ID') }
+  }
+</script>

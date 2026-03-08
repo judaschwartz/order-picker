@@ -1,43 +1,220 @@
-<div class="admin-form" id="register">
-  <h2>Volunteer Sign up</h2>
+<div class="admin-form" id="register" style="margin-bottom: 32px; max-width: 100%;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h2 style="margin: 0;">Quick Add Volunteer</h2>
+  </div>
   <form>
-    <label for="name">Name:</label>
-    <input required type="text" id="name" name="name" placeholder="First Last" />
-    <label for="phone">Phone:</label>
-    <input type="tel" id="phone" name="phone" placeholder="2161234567" />
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" placeholder="user@email.com" />
-    <label for="hasOrder"><input type="checkbox" id="hasOrder" name="hasOrder">Need to pick up own order</label>
-    <label for="age">Age range:</label>
-    <select name="age" id="age">
-      <option value="">AGE</option>
-      <option value="15">Under 20</option>
-      <option value="20">20s</option>
-      <option value="30">30s</option>
-      <option value="40">40s</option>
-      <option value="50">50s</option>
-      <option value="60">60s</option>
-      <option value="70">over 70</option>
-    </select><br>
-    <button type="button" onclick="addVol()">Add Volunteer</button>
+    <div class="form-grid">
+      <div class="form-group autocomplete" style="position: relative;">
+        <label for="name">Full Name</label>
+        <input required type="text" id="name" name="name" placeholder="First Last" autocomplete="off" oninput="handleAutocomplete(this.value)" onfocus="handleAutocomplete(this.value)" />
+        <div id="autocomplete-list" class="autocomplete-items"></div>
+      </div>
+      
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" placeholder="(216) 123-4567" oninput="this.value = formatPhoneNumber(this.value)" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="user@email.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age Range</label>
+        <select name="age" id="age">
+          <option value="">Select Age</option>
+          <option value="15">Under 20</option>
+          <option value="20">20s</option>
+          <option value="30">30s</option>
+          <option value="40">40s</option>
+          <option value="50">50s</option>
+          <option value="60">60s</option>
+          <option value="70">Over 70</option>
+        </select>
+      </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 16px;">
+      <div class="checkbox-group" style="margin: 0; padding: 10px 16px;">
+        <label class="toggle-label" for="hasOrder">
+          <input type="checkbox" id="hasOrder" name="hasOrder">
+          <span>Needs to pick up own order</span>
+        </label>
+      </div>
+      <button type="button" class="btn-primary" onclick="addVol()" style="min-width: 150px; flex-grow: 1; max-width: 300px;">Add Volunteer</button>
+    </div>
   </form>
 </div>
+
 <script>
-  function checkout(volId) {
-    if (confirm(`Are you sure you want to check out ${volId}?`)) {
-      url.searchParams.set('volId', volId)
-      window.location.href = url.href
+  const masterVolunteers = MASTER_VOLUNTEERS;
+
+  function handleAutocomplete(val) {
+    const list = document.getElementById("autocomplete-list");
+    list.innerHTML = '';
+    const seenNames = new Set();
+    const matches = masterVolunteers.filter(v => {
+      if (!v[0]) return false;
+      const name = v[0].toLowerCase();
+      if (seenNames.has(name)) return false;
+      const search = val.toLowerCase();
+      if (name.includes(search)) { seenNames.add(name); return true; }
+      return false;
+    });
+    matches.forEach(v => {
+      const name = v[0];
+      const item = document.createElement("div");
+      const regex = new RegExp(`(${val})`, "gi");
+      item.innerHTML = name.replace(regex, "<strong>$1</strong>"); 
+      item.addEventListener("click", function(e) {
+        document.getElementById("name").value = name;
+        list.innerHTML = '';
+        fillVolunteerInfo(name);
+      });
+      list.appendChild(item);
+    });
+  }
+  
+  document.addEventListener("click", function (e) {
+    if (e.target.id !== "name") {
+      const list = document.getElementById("autocomplete-list");
+      if (list) list.innerHTML = "";
+    }
+  });
+
+  function fillVolunteerInfo(selectedName) {
+    const vol = masterVolunteers.find(v => v[0].toLowerCase() === selectedName.toLowerCase());
+    if (vol) {
+      if (vol[1]) document.querySelector('input[name="phone"]').value = vol[1];
+      if (vol[2]) document.querySelector('input[name="email"]').value = vol[2];
+      if (vol[3]) document.querySelector('input[name="age"]').value = vol[3];
     }
   }
+
   function addVol() {
     const name = document.querySelector('input[name="name"]').value.trim()
     if (name) {
       url.searchParams.set('name', name)
       url.searchParams.set('phone', document.querySelector('input[name="phone"]').value.replace(/\D/g, ''))
-      url.searchParams.set('email', document.querySelector('input[name="email"]').value.trim().toLowerCase())
-      url.searchParams.set('age', document.querySelector('#age').value)
+      url.searchParams.set('email', document.querySelector('input[name="email"]').value)
+      url.searchParams.set('age', document.querySelector('select[name="age"]').value)
       url.searchParams.set('hasOrder', document.querySelector('input[name="hasOrder"]').checked ? 'Yes' : 'No')
       window.location.href = url.href
+    } else {
+      alert("Please enter a volunteer name.");
     }
   }
 </script>
+
+<div style="text-align: center; margin-bottom: 32px;">
+  <h2 style="margin-bottom: 16px;">Manage Volunteers</h2>
+</div>
+
+<script>
+  function checkout(volId) {
+    customConfirm(`Are you sure you want to check out ${volId}?`, () => {
+      url.searchParams.set('volId', volId)
+      window.location.href = url.href
+    });
+  }
+
+  function checkin(volId) {
+    customConfirm(`Check ${volId} back in?`, () => {
+      url.searchParams.set('checkinId', volId)
+      window.location.href = url.href
+    });
+  }
+  function viewVol(id, name, phone, email, age, hasOrder) {
+    document.getElementById('edit-id').value = id || '';
+    document.getElementById('edit-name').value = name || '';
+    document.getElementById('edit-phone').value = phone || '';
+    document.getElementById('edit-email').value = email || '';
+    document.getElementById('edit-age').value = age || '';
+    document.getElementById('edit-hasOrder').checked = (hasOrder === 'Yes');
+    document.getElementById('vol-modal').style.display = 'flex';
+  }
+
+  function closeVolModal() {
+    document.getElementById('vol-modal').style.display = 'none';
+  }
+
+  function saveVolEdit() {
+    const id = document.getElementById('edit-id').value;
+    const nameInput = document.getElementById('edit-name');
+    const name = nameInput.value.trim();
+
+    if(!name) {
+      nameInput.classList.add('invalid-shake');
+      setTimeout(() => nameInput.classList.remove('invalid-shake'), 400);
+      return;
+    }
+
+    const phone = document.getElementById('edit-phone').value;    const email = document.getElementById('edit-email').value;
+    const age = document.getElementById('edit-age').value;
+    const hasOrder = document.getElementById('edit-hasOrder').checked ? 'Yes' : 'No';
+    
+    url.searchParams.set('editVolId', id);
+    url.searchParams.set('editName', name);
+    url.searchParams.set('editPhone', phone);
+    url.searchParams.set('editEmail', email);
+    url.searchParams.set('editAge', age);
+    url.searchParams.set('editHasOrder', hasOrder);
+    window.location.href = url.href;
+  }
+</script>
+
+<div id="vol-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeVolModal()">&times;</span>
+    <div class="modal-header">
+      <h2>Volunteer Details</h2>
+      <p class="subtitle">View and edit volunteer information below.</p>
+    </div>
+    <div class="admin-form" style="box-shadow: none; padding: 0;">
+      <form id="edit-vol-form">
+        <input type="hidden" id="edit-id" name="editVolId">
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name</label> 
+            <input type="text" id="edit-name" name="editName" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label> 
+            <input type="tel" id="edit-phone" name="editPhone" placeholder="e.g. (216) 123-4567" oninput="this.value = formatPhoneNumber(this.value)">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label> 
+            <input type="email" id="edit-email" name="editEmail">
+          </div>
+          <div class="form-group">
+            <label>Age Range</label> 
+            <select id="edit-age" name="editAge">
+              <option value="">Select Age</option>
+              <option value="15">Under 20</option>
+              <option value="20">20s</option>
+              <option value="30">30s</option>
+              <option value="40">40s</option>
+              <option value="50">50s</option>
+              <option value="60">60s</option>
+              <option value="70">Over 70</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="edit-hasOrder" name="editHasOrder"> 
+            <span>Needs to pick up own order</span>
+          </label>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeVolModal()">Cancel</button>
+          <button type="button" class="btn-save" onclick="saveVolEdit()">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

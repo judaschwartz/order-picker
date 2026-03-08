@@ -9,9 +9,12 @@
     "unix-print": "^1.3.2"
   },
   "scripts": {
-    "main": "npm i > /dev/null && node scripts/server.js",
-    "main-debug": "DEBUG=true npm run main",
+    "main": "node scripts/server.js",
+    "main-debug": "cross-env DEBUG=true node scripts/server.js",
     "init": "node scripts/makeOrders.js",
     "results": "node scripts/processDiffs.js"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

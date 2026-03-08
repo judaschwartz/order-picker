@@ -1,23 +1,54 @@
-<h2>Combine Orders</h2>
-<small>New order id will include the old order IDs eg: "111" and "222" will become "111222"<br>
-  <b>ALERT: Once the orders are combined it is irreversible</b> The individual orders will be blocked from being picked separately<br>
-Please tell the customer that they need to confirm they received all their items BEFORE they split the order apart</small>
-<p>Enter the IDs of the orders you want to combine: </p>
-<form>
-  <input style="font-size: 40px; width: 150px;" type="number" id="id1" name="id1" /><br><br>
-  <input style="font-size: 40px; width: 150px;" type="number" id="id2" name="id2" /><br><br>
-  <button style="font-size: 40px; padding: 20px;" type="button" onclick="combo()">Combine Orders</button>
-</form><br><br>
+<div class="admin-form" id="combo-container">
+  <h2>Combine Orders</h2>
+  
+  <div class="alert-banner warning">
+    <strong>ALERT: Once orders are combined, this is irreversible!</strong><br>
+    The individual orders will be blocked from being picked separately. Please tell the customer they need to confirm they received all their items BEFORE they split the order apart.
+  </div>
+  
+  <p class="info-text">New order ID will include the old order IDs (e.g. "111" and "222" becomes "111222"). Enter the IDs of the orders you want to combine below:</p>
+  
+  <form class="combo-form">
+    <div class="input-row">
+      <div class="input-group">
+        <label for="id1">First Order ID</label>
+        <input type="number" id="id1" name="id1" placeholder="e.g. 111" />
+      </div>
+      <div class="combo-plus">+</div>
+      <div class="input-group">
+        <label for="id2">Second Order ID</label>
+        <input type="number" id="id2" name="id2" placeholder="e.g. 222" />
+      </div>
+    </div>
+    
+    <button type="button" class="btn-primary full-width" onclick="combo()">Combine Orders</button>
+  </form>
+</div>
 <script>
   function combo() {
-    const id1 = document.querySelector('input[name="id1"]').value.replace(/\D/g, '')
-    const id2 = document.querySelector('input[name="id2"]').value.replace(/\D/g, '')
-    if (!id1.trim() || !id2.trim()) {
-      alert('Please enter both order IDs')
-    } else {
+    const id1Input = document.querySelector('input[name="id1"]');
+    const id2Input = document.querySelector('input[name="id2"]');
+    const id1 = id1Input.value.replace(/\D/g, '');
+    const id2 = id2Input.value.replace(/\D/g, '');
+    
+    let hasError = false;
+    if (!id1.trim()) {
+      id1Input.classList.add('invalid-shake');
+      setTimeout(() => id1Input.classList.remove('invalid-shake'), 400);
+      hasError = true;
+    }
+    if (!id2.trim()) {
+      id2Input.classList.add('invalid-shake');
+      setTimeout(() => id2Input.classList.remove('invalid-shake'), 400);
+      hasError = true;
+    }
+    
+    if (hasError) return;
+
+    customConfirm(`Are you sure you want to permanently combine orders ${id1} and ${id2}?`, () => {
       url.searchParams.set('id1', id1)
       url.searchParams.set('id2', id2)
       window.location.href = url.href
-    }
+    });
   }
 </script>
