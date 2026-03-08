@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer Signup</title>
+  <link rel="stylesheet" href="admin/style.css">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      padding: 20px;
+    }
+    .signup-container {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    .signup-container h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+    .signup-container form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .success-msg {
+      display: none;
+      color: var(--success);
+      background: #d1fae5;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .toast {
+      position: relative;
+      pointer-events: auto;
+    }
+    .toast::after {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="signup-container">
+  <h2>Volunteer Signup</h2>
+  <div class="success-msg" id="success">Thanks for signing up! You have been added to our database.</div>
+  
+  <form id="signup-form" onsubmit="submitForm(event)">
+    <label for="name">Full Name</label>
+    <input required type="text" id="name" name="name" placeholder="First Last">
+    
+    <label for="phone">Phone Number</label>
+    <input type="tel" id="phone" name="phone" placeholder="2161234567">
+    
+    <label for="email">Email Address</label>
+    <input type="email" id="email" name="email" placeholder="user@email.com">
+    
+    <label for="age">Age Range</label>
+    <select name="age" id="age">
+      <option value="">Select Age</option>
+      <option value="15">Under 20</option>
+      <option value="20">20s</option>
+      <option value="30">30s</option>
+      <option value="40">40s</option>
+      <option value="50">50s</option>
+      <option value="60">60s</option>
+      <option value="70">Over 70</option>
+    </select>
+    
+    <button type="submit">Sign Up</button>
+  </form>
+</div>
+
+<script>
+  function submitForm(event) {
+    event.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.replace(/\D/g, '');
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const age = document.getElementById('age').value;
+
+    fetch(`/api/signup?name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&age=${encodeURIComponent(age)}`)
+      .then(res => res.text())
+      .then(volId => {
+        document.getElementById('signup-form').reset();
+
+        // Create an undeniable, persistent toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast info';
+        toast.style.animation = 'slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+        toast.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <strong style="font-size: 18px;">Registration Complete!</strong>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 24px; padding: 0; min-height: auto; line-height: 1; margin-left: 16px;">&times;</button>
+          </div>
+          <p style="margin: 0; font-size: 16px;">Your Picker ID is <strong style="font-size: 22px; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 6px;">${volId}</strong></p>
+          <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">Please speak to Shalom Karr if you need any help.</p>
+        `;
+
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+          toastContainer = document.createElement('div');
+          toastContainer.id = 'toast-container';
+          document.body.appendChild(toastContainer);
+        }
+        toastContainer.appendChild(toast);
+      })
+      .catch(err => alert("There was an error saving your info."));
+  }
+</script>
+</body>
+</html>

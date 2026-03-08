@@ -17,22 +17,13 @@
 >**Note:** While picking an order the picker may skip to the order confirmation page at any point by entering a quantity of `998` for the current item.
 
 ### Admin Console:
-Navigate to `<URL>:<PORT>/kadmin` there is a menu of admin pages that includes:
-- Volunteers
-- Product Alerts
-- Combine two orders
-- Print an order
-- Orders in progress
-- All orders
-- Items Picked
-
-#### Volunteer Sign-Up:
-Registered volunteers will be assigned a sequential number.
-- The list of volunteers is also saved in `orders/P25/volunteers.csv`.
->**Note:** There is always a default admin volunteer #998.
-
-#### Alerts
-Use slot ID to add alerts or popups to display in app when a picker reaches a specific item (e.g., "Out of Stock").
+Navigate to `<URL>:<PORT>/kadmin` to access the responsive, mobile-friendly admin dashboard. Features include:
+- **Volunteers & Analytics:** Register pickers, check them in/out, and track performance metrics like items picked per minute.
+- **Product Alerts:** Use slot IDs to add visual info badges or popups to display in app when a picker reaches a specific item.
+- **Combine two orders:** Seamlessly merge multiple orders assigned to the same person.
+- **Print an order:** View or print PDF packing slips dynamically.
+- **Order Tracking:** Monitor live progress, see what's being picked right now, and view unfilled orders.
+- **Dark Mode:** Toggle a dark theme for low-light warehouse conditions.
 
 #### Managing stock
 On the "Items Picked" page, an admin can update the quantity of an item currently available on the picking floor. This number will be updated automatically with each pick, allowing the admin to monitor inventory levels and determine when to move more items onto the picking floor.

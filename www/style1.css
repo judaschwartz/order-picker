@@ -291,3 +291,155 @@ div.qty-box, table .qty-box div {
   height: 22px;
   margin: 3px 8px 5px;
 }
+
+/* Modal Styles for Start Page */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+  padding: 24px;
+  text-align: left;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.modal-content .close {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+}
+
+.modal-content form label {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="tel"],
+.modal-content input[type="email"],
+.modal-content select {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.register-btn {
+  font-size: 14px;
+  padding: 6px 12px;
+  margin: 0 0 15px 0;
+  background-color: #28a745;
+  width: auto;
+  border-radius: 6px;
+}
+.register-btn:hover {
+  background-color: #218838;
+}
+
+/* Custom Alerts for Picker App */
+#picker-alert-container {
+  position: fixed;
+  top: 10px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10000;
+}
+.picker-alert {
+  background: white;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+  margin-bottom: 10px;
+  pointer-events: auto;
+  overflow: hidden;
+  animation: alertSlideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes alertSlideDown {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.picker-alert-header {
+  padding: 12px 16px;
+  font-weight: bold;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.picker-alert-body {
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #333;
+}
+.picker-alert-footer {
+  padding: 12px;
+  display: flex;
+  justify-content: flex-end;
+  background: #f8f9fa;
+  gap: 10px;
+}
+.picker-alert button {
+  padding: 8px 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-alert-ok { background: var(--primary, #007bff); color: white; }
+.btn-alert-cancel { background: #e2e8f0; color: #333; }
+
+/* Alert Types */
+.picker-alert.warning .picker-alert-header { background: #ffc107; color: #000; }
+.picker-alert.danger .picker-alert-header { background: #dc3545; color: #fff; }
+.picker-alert.danger .btn-alert-ok { background: #dc3545; }
+.picker-alert.info .picker-alert-header { background: #17a2b8; color: #fff; }
+
+/* In-page Warn replacement */
+.inline-warn {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+}
