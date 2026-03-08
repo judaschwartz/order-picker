@@ -1,0 +1,122 @@
+<div class="admin-form" id="register">
+  <div style="text-align: center; margin-bottom: 24px;">
+    <h2 style="margin-bottom: 8px;">Volunteer Sign Up</h2>
+    <p style="color: var(--text-muted); font-size: 15px; margin: 0;">Add a new volunteer to the system.</p>
+  </div>
+  <form>
+    <div class="form-grid">
+      <div class="form-group" style="position: relative;">
+        <label for="name">Full Name</label>
+        <div class="autocomplete">
+          <input required type="text" id="name" name="name" placeholder="First Last" autocomplete="off" oninput="handleAutocomplete(this.value)" onfocus="handleAutocomplete(this.value)" />
+          <div id="autocomplete-list" class="autocomplete-items"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="e.g. (216) 123-4567" oninput="this.value = formatPhoneNumber(this.value)" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="user@email.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age Range</label>
+        <select name="age" id="age">
+          <option value="">Select Age</option>
+          <option value="15">Under 20</option>
+          <option value="20">20s</option>
+          <option value="30">30s</option>
+          <option value="40">40s</option>
+          <option value="50">50s</option>
+          <option value="60">60s</option>
+          <option value="70">Over 70</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="checkbox-group" style="margin-top: 8px;">
+      <label class="toggle-label" for="hasOrder">
+        <input type="checkbox" id="hasOrder" name="hasOrder">
+        <span>Needs to pick up own order</span>
+      </label>
+    </div>
+
+    <button type="button" class="btn-primary full-width" onclick="addVol()" style="margin-top: 16px;">Add Volunteer</button>
+  </form>
+</div>
+<script>
+  const masterVolunteers = MASTER_VOLUNTEERS;
+
+  function handleAutocomplete(val) {
+    const list = document.getElementById("autocomplete-list");
+    list.innerHTML = '';
+    
+    // Create a set to prevent duplicates if any exist in the master DB
+    const seenNames = new Set();
+    
+    const matches = masterVolunteers.filter(v => {
+      if (!v[0]) return false;
+      const name = v[0].toLowerCase();
+      if (seenNames.has(name)) return false;
+      
+      const search = val.toLowerCase();
+      if (name.includes(search)) {
+        seenNames.add(name);
+        return true;
+      }
+      return false;
+    });
+    
+    matches.forEach(v => {
+      const name = v[0];
+      const item = document.createElement("div");
+      // Highlight matching part
+      const regex = new RegExp(`(${val})`, "gi");
+      item.innerHTML = name.replace(regex, "<strong>$1</strong>"); 
+      
+      item.addEventListener("click", function(e) {
+        document.getElementById("name").value = name;
+        list.innerHTML = '';
+        fillVolunteerInfo(name);
+      });
+      list.appendChild(item);
+    });
+  }
+  
+  // Close the dropdown if the user clicks outside of it
+  document.addEventListener("click", function (e) {
+    if (e.target.id !== "name") {
+      const list = document.getElementById("autocomplete-list");
+      if (list) list.innerHTML = "";
+    }
+  });
+
+  function fillVolunteerInfo(selectedName) {
+    const vol = masterVolunteers.find(v => v[0].toLowerCase() === selectedName.toLowerCase());
+    if (vol) {
+      if (vol[1]) document.querySelector('input[name="phone"]').value = vol[1];
+      if (vol[2]) document.querySelector('input[name="email"]').value = vol[2];
+      if (vol[3]) document.querySelector('#age').value = vol[3];
+    }
+  }
+
+  function addVol() {
+    const name = document.querySelector('input[name="name"]').value.trim()
+    if (name) {
+      const submitUrl = new URL(location.href);
+      submitUrl.searchParams.set('page', 'volunteers')
+      submitUrl.searchParams.set('name', name)
+      submitUrl.searchParams.set('phone', document.querySelector('input[name="phone"]').value.replace(/\D/g, ''))
+      submitUrl.searchParams.set('email', document.querySelector('input[name="email"]').value.trim().toLowerCase())
+      submitUrl.searchParams.set('age', document.querySelector('#age').value)
+      submitUrl.searchParams.set('hasOrder', document.querySelector('input[name="hasOrder"]').checked ? 'Yes' : 'No')
+      window.location.href = submitUrl.href
+    } else {
+      alert("Please enter a volunteer name.");
+    }
+  }
+</script>

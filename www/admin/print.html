@@ -1,10 +1,24 @@
-<h2>Print an Order</h2>
-<form style="display: flex; flex-wrap: wrap; align-content: space-between; justify-content: space-between; height: 140px;">
-  <input style="font-size: 36px;width: 200px;" type="number" id="printId" name="printId">
-  <button style="font-size: 30px;padding: 10px;" type="button" onclick="print('Canon_MF450_Series')">Print at end</button>
-  <button style="font-size: 30px;padding: 10px;" type="button" onclick="print(true, true)">View Order</button>
-  <button style="font-size: 30px;padding: 10px;" type="button" onclick="print('Brother_HL_L2350DW_series')">Print at start</button>
-</form><br><br>
+<div class="admin-form" id="print-container">
+  <h2>Print or View an Order</h2>
+  <form class="print-form">
+    <div class="input-group">
+      <label for="printId">Order ID</label>
+      <input type="number" id="printId" name="printId" placeholder="e.g. 123">
+    </div>
+    
+    <div class="button-group">
+      <button type="button" class="btn-secondary" onclick="print(true, true)">
+        <span class="icon">&#128065;</span> View Order
+      </button>
+      <button type="button" class="btn-primary" onclick="print('Brother_HL_L2350DW_series')">
+        <span class="icon">&#128424;</span> Print at Start
+      </button>
+      <button type="button" class="btn-primary" onclick="print('Canon_MF450_Series')">
+        <span class="icon">&#128424;</span> Print at End
+      </button>
+    </div>
+  </form>
+</div>
 <script>
   function print(printer = '', view = false) {
     const printId = document.querySelector('input[name="printId"]').value.replace(/\D/g, '')

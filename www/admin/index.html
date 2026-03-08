@@ -10,6 +10,40 @@
 </head>
 <body>
   <header>
-    <div class="burger" onclick="window.location.href = '/kadmin'">&#9776;</div>
-    <label id="auto-reload"><input type="checkbox" onclick="toggleRefresh()" checked>Auto Refresh Page</label>
+    <div class="header-logo">Admin Dashboard</div>
+    
+    <nav class="desktop-tabs">
+      <a href="javascript:page('volunteers')" class="tab-link" data-page="volunteers">🧑‍🤝‍🧑 Volunteers</a>
+      <a href="javascript:page('orders')" class="tab-link" data-page="orders">📦 Orders</a>
+      <a href="javascript:page('analytics')" class="tab-link" data-page="analytics">📈 Analytics</a>
+      <a href="javascript:page('items')" class="tab-link" data-page="items">🛠️ Inventory</a>
+      <a href="javascript:page('alerts')" class="tab-link" data-page="alerts">⚠️ Alerts</a>
+      <a href="javascript:page('combo')" class="tab-link" data-page="combo">🔗 Combo</a>
+      <a href="javascript:page('print')" class="tab-link" data-page="print">🖨️ Print/View</a>
+    </nav>
+
+    <div class="header-actions">
+      <label id="auto-reload" style="display: none;" class="auto-reload-label"><input type="checkbox" onclick="toggleRefresh()" checked><span>Auto Refresh</span></label>
+      
+      <button class="theme-icon-btn" onclick="toggleDarkMode()" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon">🌙</span>
+      </button>
+
+      <div class="burger" role="button" tabindex="0" aria-label="Open navigation menu" onclick="toggleMenu()">
+        &#9776; <div class="refresh-indicator" id="refresh-indicator"></div>
+      </div>
+    </div>
   </header>
+  
+  <ul class="menu" id="nav-menu">
+    <li class="close-menu" tabindex="0" aria-label="Close menu" onclick="toggleMenu()">&times;</li>
+    <li data-page="volunteers" tabindex="0" onclick="page('volunteers')">🧑‍🤝‍🧑 Manage Volunteers</li>
+    <li data-page="orders" tabindex="0" onclick="page('orders')">📦 All orders</li>
+    <li data-page="analytics" tabindex="0" onclick="page('analytics')">📈 Analytics</li>
+    <li data-page="items" tabindex="0" onclick="page('items')">🛠️ Manage Inventory</li>
+    <li data-page="alerts" tabindex="0" onclick="page('alerts')">⚠️ Product Alerts</li>
+    <li data-page="combo" tabindex="0" onclick="page('combo')">🔗 Combine two orders</li>
+    <li data-page="print" tabindex="0" onclick="page('print')">🖨️ Print or View an Order</li>
+  </ul>
+  <button id="back-to-top" aria-label="Back to top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>

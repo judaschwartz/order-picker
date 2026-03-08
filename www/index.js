@@ -15,18 +15,24 @@ function validateForm(event) {
   const qty = parseInt(document.getElementById('qty').value || 0)
   document.getElementById('qty').value = qty
   const excepted = parseInt(document.getElementById('excepted').innerText || 0)
+  
   if (qty < excepted) {
-    if (!confirm(`Received ${qty} but they ordered ${excepted}.\nPress OK if you still want to continue to the next item.`)) {
-      event.preventDefault()
-    }
+    event.preventDefault(); // Pause form submission to wait for user choice
+    customAlert(`Received ${qty} but they ordered ${excepted}.<br>Press OK if you still want to continue to the next item.`, 'warning', () => {
+      // On confirm, programmatically submit the form
+      event.target.submit();
+    });
   } else if (qty > excepted && qty !== 998) {
-    alert(`Received ${qty} but they ordered ${excepted}.\nYou must remove extra items.`)
-    event.preventDefault()
+    customAlert(`Received ${qty} but they ordered ${excepted}.<br>You must remove extra items.`, 'danger');
+    event.preventDefault();
   }
 }
 window.addEventListener('load', function() {
   [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
-  document.querySelector('#aisle').value = aisle
+  const aisleInput = document.querySelector('#aisle')
+  if (aisleInput) {
+    aisleInput.value = aisle || '0'
+  }
 })
 
 function increment(input = document.getElementById('qty')) {
@@ -89,3 +95,47 @@ function sendChange(elem, tr) {
     })
   }, 400)
 }
+
+window.customAlert = function(message, type = 'info', onConfirm = null) {
+  let container = document.getElementById('picker-alert-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'picker-alert-container';
+    document.body.appendChild(container);
+  }
+  
+  const alertBox = document.createElement('div');
+  alertBox.className = 'picker-alert ' + type;
+  
+  let headerText = 'Information';
+  if (type === 'warning') headerText = '⚠️ Warning';
+  if (type === 'danger') headerText = '🚨 Important Alert';
+
+  const isConfirm = onConfirm !== null;
+  
+  alertBox.innerHTML = `
+    <div class="picker-alert-header">${headerText}</div>
+    <div class="picker-alert-body">${message.replace(/\n/g, '<br>')}</div>
+    <div class="picker-alert-footer">
+      ${isConfirm ? '<button class="btn-alert-cancel">Cancel</button>' : ''}
+      <button class="btn-alert-ok">${isConfirm ? 'OK' : 'Got it'}</button>
+    </div>
+  `;
+  
+  container.appendChild(alertBox);
+  
+  const okBtn = alertBox.querySelector('.btn-alert-ok');
+  okBtn.onclick = () => {
+    alertBox.remove();
+    if(isConfirm) onConfirm();
+  };
+  
+  if (isConfirm) {
+    alertBox.querySelector('.btn-alert-cancel').onclick = () => alertBox.remove();
+  }
+};
+
+// Override native alert globally for any inline scripts
+window.alert = function(msg) {
+  window.customAlert(msg, 'warning');
+};
