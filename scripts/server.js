@@ -274,6 +274,10 @@ const server = createServer((req, res) => {
           }
           order[lastItm][2] = qty
           itmsJson[`${order[lastItm][3]}-${order[lastItm][0]}`] -= (qty - lstQty)
+//  commented code is for 3 lane csv for itmTotals
+//  itmTotals[lastItm - 1][3] -= -(qty - lstQty)
+//  const even = Number(order[lastItm][3].replace('A', '')) % 2
+//  itmTotals[lastItm - 1][(query.aisle * 2) + even + ((query.aisle < 3 || !even) * 2)] -= (qty - lstQty)
         }
         if (changed) {
           fs.writeFileSync(`${path}gen/${user}.csv`, order.map(l => l.join(',')).join('\n'))
