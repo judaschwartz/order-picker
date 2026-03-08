@@ -1,0 +1,16 @@
+<script>
+  function adjust(itmKey, row) {
+    const qty = prompt('Adjust quantity by:\n(you can also input a negative number)')
+    if (Number(qty)) {
+      url.searchParams.set('itmKey', `${itmKey}-${row}`)
+      url.searchParams.set('qty', Math.round(Number(qty)))
+      window.location.href = url.href
+    } else {
+      alert('invalid qty entered')
+    }
+  }
+</script>
+<style>
+  table { font-size: 14px;}
+  button { padding: 0; }
+</style>

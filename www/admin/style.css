@@ -457,11 +457,12 @@ th:hover {
 }
 
 /* Forms & Inputs */
-input[type="text"], 
-input[type="number"], 
-textarea, 
-select {
-  width: 100%;
+input[type="text"],
+input[type="number"],
+input[type="tel"],
+input[type="email"],
+textarea,
+select {  width: 100%;
   padding: 10px 14px;
   font-size: 16px;
   border: 1px solid var(--border-color);
