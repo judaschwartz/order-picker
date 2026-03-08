@@ -1,0 +1,28 @@
+<div class="admin-form" id="alerts">
+  <h2>Product Alerts</h2>
+  <form>
+    <input type="text" name="prodId" placeholder="ID" />
+    <textarea name="itmAlert" placeholder="Alert Message">Out of stock</textarea>
+    <button type="button" onclick="addProdAlert(false)">Add Info</button>
+    <button type="button" onclick="addProdAlert(true)">Add Alert</button>
+  </form>
+</div>
+<script>
+  window.addEventListener('load', function() {
+    document.querySelectorAll('#alerts tr:not(:first-child) td:first-child').forEach(e => {
+      e.onclick = () => {
+        url.searchParams.set('remove', e.nextSibling.innerText)
+        window.location.href = url.href
+      }
+    })
+  })
+  function addProdAlert(popup) {
+    const prodId = document.querySelector('input[name="prodId"]').value
+    const itmAlert = document.querySelector('textarea[name="itmAlert"]').value
+    if (prodId && itmAlert) {
+      url.searchParams.set('prodId', `${popup ? 'POP ' : ''}${prodId.toUpperCase()}`)
+      url.searchParams.set('itmAlert', itmAlert)
+      window.location.href = url.href
+    }
+  }
+</script>
