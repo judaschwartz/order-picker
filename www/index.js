@@ -25,9 +25,11 @@ function validateForm(event) {
 }
 window.addEventListener('load', function() {
   let goToNext = true;
+  const qty = parseInt(document.getElementById('qty').value || 0);
+  const excepted = parseInt(document.getElementById('excepted').innerText || 0);
   [...document.querySelectorAll('.next tr')].slice(1).forEach((tr, ind) => {
     if (goToNext) tr.onclick = () => ind ? location.href = `/?user=${user}&itm=${tr.dataset.itm - 1}` : pickAhead(tr)
-    if (tr.querySelector('td:last-child').innerText !== '0') goToNext = false
+    if (tr.querySelector('td:last-child').innerText !== '0' || qty < excepted) goToNext = false
   })
 })
 

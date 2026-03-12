@@ -1,16 +1,17 @@
-const { createServer } = require('http')
-const fs = require('fs')
-const { parse } = require('url')
-const { networkInterfaces } = require('os')
-const { launch } = require('puppeteer')
-const { print } = require("unix-print")
+import { createServer } from 'http'
+import fs from 'fs'
+import { parse } from 'url'
+import { networkInterfaces } from 'os'
+import { launch } from 'puppeteer'
+import { print } from "unix-print"
 
 const soulName = `<p style="width: 600px; text-align: center; margin: 8px auto 0;font-size: 14px;">Kemach this year is dedicated L'ilui Nishmas<br>ר' יחזקאל בן ר' יחיאל אריה הכהן<br>ישראל מרדכי בן ר' יצחק</p>`
 const today = new Date().toLocaleDateString().split('/')
 const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
 const path = `orders/${orderIdPrefix}/`
 if (!fs.existsSync(`${path}orders.json`)) {
-  return console.log('orders.json file not found you need to execute the "npm run init" command to create the orders')
+  console.error('orders.json file not found you need to execute the "npm run init" command to create the orders')
+  process.exit(1)
 }
 if (!fs.existsSync(`${path}printed`)) fs.mkdirSync(`${path}printed`)
 const blocked = fs.readFileSync(`${path}blocked.txt`).toString().split(',').filter(Boolean)
