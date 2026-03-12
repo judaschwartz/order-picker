@@ -6,18 +6,24 @@ if (!fs.existsSync(`${path}allOrders.csv`) || !fs.existsSync(`${path}nameSlot.cs
   console.log('Missing allOrders.csv or nameSlot.csv in ', path, ' please add and try again')
   process.exit()
 }
-const oldPath = `${path}old/${new Date().toISOString().replace(/[:.]/g, '-')}/`
-fs.mkdirSync(oldPath, { recursive: true })
-fs.readdirSync(path).forEach(i => i !== 'old' && fs.moveSync(`${path}${i}`, `${oldPath}${i}`))
-fs.copyFileSync(`${oldPath}allOrders.csv`, `${path}allOrders.csv`)
-fs.copyFileSync(`${oldPath}nameSlot.csv`, `${path}nameSlot.csv`)
-fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
-fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,picked\n998,Admin,,,,,,,')
-fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
-fs.writeFileSync(`${path}alerts.json`, JSON.stringify({}))
-fs.writeFileSync(`${path}blocked.txt`, '')
-fs.writeFileSync(`${path}combined.txt`, '')
-fs.mkdirSync(`${path}gen`, { recursive: true })
+if (process.env.WIPE) {
+  const oldPath = `${path}old/${new Date().toISOString().replace(/[:.]/g, '-')}/`
+  fs.mkdirSync(oldPath, { recursive: true })
+  fs.readdirSync(path).forEach(i => i !== 'old' && fs.moveSync(`${path}${i}`, `${oldPath}${i}`))
+  fs.copyFileSync(`${oldPath}allOrders.csv`, `${path}allOrders.csv`)
+  fs.copyFileSync(`${oldPath}nameSlot.csv`, `${path}nameSlot.csv`)
+  fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
+  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,picked\n998,Admin,,,,,,,')
+  fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
+  fs.writeFileSync(`${path}alerts.json`, JSON.stringify({}))
+  fs.writeFileSync(`${path}blocked.txt`, '')
+  fs.writeFileSync(`${path}combined.txt`, '')
+  fs.mkdirSync(`${path}gen`, { recursive: true })
+}
+if (!fs.existsSync(`${path}gen`)) {
+  console.log('You must run init-fresh on first attempt')
+  process.exit()
+}
 const orders = fs.readFileSync(`${path}allOrders.csv`).toString().trim().split("\n").filter(o => Number(o.split(',').slice(3, -2).join('')))
 const names = fs.readFileSync(`${path}nameSlot.csv`).toString().split("\n").slice(1).map(n => n.split(',').map(i => i.trim()))
 
@@ -31,10 +37,10 @@ orders.forEach(l => {
   const name = [l[0], l[1], l[2]].join(' ').toUpperCase().trim().replace(/ +/g, ' ')
   jsonFile[parseInt(l.at(-1))] = name
   let ttl = 0
-  const itms = l.slice(3, -1 + ((orderIdPrefix === 'P') * -1)) // -2 on pesach
-  if (orderIdPrefix === 'P') {
-    if (l.at(-2).trim() === 'Y') itms.push(4,2,3,4,3,1)
-    else itms.push(0,0,0,0,0,0)
+  const itms = l.slice(3, -1 + ((orderIdPrefix[0] === 'P') * -1)) // -2 on pesach
+  if (orderIdPrefix[0] === 'P') {
+    if (l.at(-2).trim() === 'Y') itms.push('4', '2', '4', '3', '1') // apple, carrot, onion, orange, potato
+    else itms.push(0,0,0,0,0)
   }
 
   const order = itms.map((n, i) => {
@@ -59,7 +65,7 @@ orders.forEach(l => {
       //     itmTotals[names[i][0]] = [names[i][1], names[i][2], qty, 0, 0, third, 0, third * 2, 0]
       //   }
       // }
-      const key = `${names[i][1]}-${names[i][2]}`
+      const key = `A${names[i][1]}-${names[i][2]}`
       if (Number(l.at(-1)) < 990) { // don't count test order items
         if (itmTotals[key]) {
           itmTotals[key] += qty
@@ -69,7 +75,7 @@ orders.forEach(l => {
       }
       ttl += qty
     }
-    return [names[i][0], names[i][2], qty, , names[i][1],]
+    return [names[i][0], names[i][2], qty, , 'A' + names[i][1],]
   }).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(l => l.slice(1).join(','))
   fs.writeFileSync(`${path}gen/${parseInt(l.at(-1))}.csv`, ['name,ordered,picked,slot,ss', `${name},,,${ttl},`, ...order].join("\n"))
 })
@@ -88,3 +94,4 @@ names.forEach((n) => {
 // ].join('\n'))
 fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmTotals, null, 2))
 console.log(`${orders.length} Orders Created`)
+if (process.env.WIPE) console.log('WIPE MODE ENABLED - ALL OLD DATA IN ORDERS FOLDER WAS DELETED')

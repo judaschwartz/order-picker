@@ -154,7 +154,7 @@ const server = createServer((req, res) => {
     try {
       if (filePath === './' && (!fs.existsSync(`${path}gen/${user}.csv`) || blocked.includes(user))) {
         filePath = './start-index.html'
-        if (user) warn = `could not find a record for order #${user} or order is blocked`
+        if (user) warn = `could not find a record for order #${user}<br>or order is blocked`
         if (query.lastUser) { // lastUser is the last order that was picked
           const order = readOrderFile(query.lastUser)
           const pickerIds = order[1]?.[2]?.split(':')?.at(-1)?.split('-') || ['998']
@@ -201,7 +201,7 @@ const server = createServer((req, res) => {
           const picker = `${volunteersJson[query.picker]} (#${query.picker})`
           console.info(`${picker} started picking order #${user}`)
           warn += `THERE ARE A TOTAL OF ${order[1][3]} ITEMS IN THIS ORDER<br>`
-          warn += order[1][3] > 50 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
+          warn += order[1][3] > 83 ? `<script>alert('This is a large order (${order[1][3]} items) use a larger team to pick')</script>` : ''
           changed = true
           const assist = query.assist ? `,${query.assist}`.replaceAll(',', '-') : ''
           if (order[1][2]) {
@@ -247,7 +247,7 @@ const server = createServer((req, res) => {
           warn += 'THIS ORDER HAS BEEN <small>(at least partially) </small>PICKED<br><small>the quantity received box includes the number already picked last time</small><br>'
         }
         var itm = order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
-        if (qty === 998) lastItm = order.length - 2
+        if (qty === 998) lastItm = order.length - 1
         var done = order.slice(2, lastItm +1).map((r, i) => {
           const ordered = Number(r[1]) || 0
           const got = Number(r[2]) || 0
@@ -260,7 +260,7 @@ const server = createServer((req, res) => {
           filePath = './api.html'
         } else if (itm === -1 || lastItm === order.length - 1) { // after all items picked confirmation page
           const pickers = order[1]?.[2]?.split(':')?.at(-1)?.split('-')
-          next = `${pickers?.reduce((acc, id) => acc + (volunteersJson[id] || '') + ', ', '')} (# ${pickers?.join(',')})`
+          next = `${pickers?.reduce((acc, id) => acc + (volunteersJson[id] || '') + ', ', '').slice(0, -2)} (# ${pickers?.join(',')})`
           itm = order.length - 1
           console.info(`Picker ${next} on confirmation page for order #${user}`)
           warn += done.length ? '' : 'This order has no items to pick'
@@ -440,7 +440,7 @@ const server = createServer((req, res) => {
                 const completed = fs.readFileSync(`${path}completed-orders.csv`, 'utf8').split('\n').map(r => r.split(','))
                 const unqIds = [...new Set(completed.map(o => o[1]))]
                 content += adminTable(completed[0], completed.slice(1), `Picked Orders: ${unqIds.length - 1} of ${numOrders}`, query.orders || 'A-end', 'orders')
-                content += adminTable(['name','orderId','picker','qty','start','row'], pickLine.slice(1), `In Progress: ${pickLine.length - 1}`, query.progress || 'start', 'progress')
+                content += adminTable(['name','orderId','picker','qty','start','aisle'], pickLine.slice(1), `In Progress: ${pickLine.length - 1}`, query.progress || 'start', 'progress')
                 const coming = Object.entries(ordersJson).filter(k => k[0] && ![...blocked, ...unqIds, ...combined, ...pickLine.map(o => o[1])].includes(k[0]))
                 content += adminTable(['orderID','name'], coming, `Un-filled Orders: ${coming.length} of ${numOrders}`, query.waiting || 'orderID', 'waiting')
               } else if (query.page?.startsWith('print')) {

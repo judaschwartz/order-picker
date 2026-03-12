@@ -250,6 +250,12 @@ div.qty-box, table .qty-box div {
   max-width: 40%;
 }
 
+#start-page .sides label small {
+  position: absolute;
+  font-size: 15px;
+  margin: 25px;
+}
+
 #start-page .sides input {
   height: 25px;
   width: 25px;

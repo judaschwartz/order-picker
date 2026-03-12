@@ -6,7 +6,7 @@
 - Each row should be another order, ensure the file includes headers with items named as the name should appear in picking app. The first column is the order ID, the second column is persons name, followed by a column for each item in the same sequence as they are on the order form.
 3. Place `nameSlot.csv` in the `orders/P25` directory.
 - Ensure the file includes `pick seq,slot,name,ss` headers. `pick seq` is the sequential number for picking, `slot` is the item ID, `name` is the item name, and `ss` indicates if the item is in a side slot.
-4. Run `npm run init` to generate `orders/P25/orders.json` and `<ORDER_ID>.csv` files in the `orders/P25/gen` dir.
+4. Run `npm run init-fresh` to generate `orders/P25/orders.json` and `<ORDER_ID>.csv` files in the `orders/P25/gen` dir.
 - By default the dir will be the most Recent `P25` (or `S26` ect..) directory to run the script on another directory set the env var `ORDER_PREFIX=customeDir`
 
 ### Running the Application:

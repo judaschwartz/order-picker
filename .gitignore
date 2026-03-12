@@ -1,4 +1,7 @@
 .history
 orders/*
+!orders/EXAMPLE/allOrders.csv
+!orders/EXAMPLE/nameSlot.csv
 .DS_Store
 node_modules
+www/admin/vol.txt

@@ -1,6 +1,5 @@
 const url = new URL(location.href)
 const user = url.searchParams.get('user')
-const aisle = url.searchParams.get('aisle')
 const picker = url.searchParams.get('picker')
 const assist = url.searchParams.get('assist')
 if (picker) {
@@ -25,8 +24,11 @@ function validateForm(event) {
   }
 }
 window.addEventListener('load', function() {
-  [...document.querySelectorAll('.next tr')].slice(1, 2).forEach(tr => tr.onclick = () => pickAhead(tr, user))
-  document.querySelector('#aisle').value = aisle
+  let goToNext = true;
+  [...document.querySelectorAll('.next tr')].slice(1).forEach((tr, ind) => {
+    if (goToNext) tr.onclick = () => ind ? location.href = `/?user=${user}&itm=${tr.dataset.itm - 1}` : pickAhead(tr)
+    if (tr.querySelector('td:last-child').innerText !== '0') goToNext = false
+  })
 })
 
 function increment(input = document.getElementById('qty')) {
@@ -61,7 +63,7 @@ function pickAhead(tr) {
     box.appendChild(minusButton)
     const numberDisplay = document.createElement('input')
     numberDisplay.type = 'number'
-    numberDisplay.value = Number(tr.getAttribute('data-n')) - Number(tr.querySelector('td:last-child').innerText)
+    numberDisplay.value = Number(tr.dataset.n) - Number(tr.querySelector('td:last-child').innerText)
     box.appendChild(numberDisplay)
     const plusButton = document.createElement('button')
     plusButton.textContent = '+'
@@ -73,7 +75,7 @@ function pickAhead(tr) {
     td.colSpan = tr.cells.length
     td.appendChild(box)
     td.className = 'qty-box'
-    tr.insertAdjacentElement('afterend', td)
+    tr.after(td)
     tr.insertAdjacentHTML('afterend', '<tr class="qty-box" style="height: 0;"></tr>')
   }
 }
@@ -81,11 +83,11 @@ let change
 function sendChange(elem, tr) {
   clearTimeout(change)
   change = setTimeout(() => {
-    fetch(`/?api=1&user=${user}&itm=${tr.getAttribute('data-itm')}&qty=${elem.value}`).then(() => {
-      tr.querySelector('td:last-child').innerText = Number(tr.getAttribute('data-n')) - elem.value
+    fetch(`/?api=1&user=${user}&itm=${tr.dataset.itm}&qty=${elem.value}`).then(() => {
+      tr.querySelector('td:last-child').innerText = Number(tr.dataset.n) - elem.value
     }).catch((e) => {
       console.error('error sending change', e)
-      elem.value = Number(tr.getAttribute('data-n')) - Number(tr.querySelector('td:last-child').innerText)
+      elem.value = Number(tr.dataset.n) - Number(tr.querySelector('td:last-child').innerText)
     })
   }, 400)
 }

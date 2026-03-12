@@ -1,6 +1,6 @@
 {
   "name": "order-picker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node server for picking app",
   "license": "CC-BY-NC-ND-4.0",
   "dependencies": {
@@ -12,6 +12,7 @@
     "main": "npm i > /dev/null && node scripts/server.js",
     "main-debug": "DEBUG=true npm run main",
     "init": "node scripts/makeOrders.js",
+    "init-fresh": "WIPE=true node scripts/makeOrders.js",
     "results": "node scripts/processDiffs.js"
   }
 }

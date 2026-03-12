@@ -2,7 +2,8 @@
   <h2>Volunteer Sign up</h2>
   <form>
     <label for="name">Name:</label>
-    <input required type="text" id="name" name="name" placeholder="First Last" />
+    <input required type="text" id="name" name="name" placeholder="First Last" autocomplete="off" list="nameSuggestions" />
+    <datalist id="nameSuggestions"></datalist>
     <label for="phone">Phone:</label>
     <input type="tel" id="phone" name="phone" placeholder="2161234567" />
     <label for="email">Email:</label>
@@ -40,4 +41,20 @@
       window.location.href = url.href
     }
   }
+  let suggestions = []
+  fetch('admin/vol.txt').then(res => res.text()).then(t => suggestions = t.split('\n').map(l => l.toLowerCase().trim()))
+  const nameInput = document.querySelector('#name')
+  nameInput.addEventListener('input', (event) => {
+    if (event.target.value.length < 3) return
+    document.querySelector('#nameSuggestions').innerHTML = suggestions.map((n, i) => {
+      return n.includes(event.target.value.toLowerCase()) && `<option value="${n}"></option>`
+    }).filter(Boolean).join('')
+  })
+  nameInput.addEventListener('change', (event) => {
+    const vals = event.target.value.split(',')
+    nameInput.value = vals[0] || ''
+    document.querySelector('input[name="phone"]').value = vals[1] || ''
+    document.querySelector('input[name="email"]').value = vals[2] || ''
+    document.querySelector('#age').value = vals[3] || ''
+  })
 </script>
