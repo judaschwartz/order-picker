@@ -32,6 +32,14 @@
   </form>
 </div>
 <script>
+  if (url.searchParams.get('page') === 'volunteer') {
+    document.querySelector('header').innerHTML = "<a href='/'>Back to picking Orders</a>"
+    const newVol = document.querySelector('#newVol')?.innerText
+    if (newVol || url.searchParams.get('volId')) {
+      newVol && alert(`Your volunteer ID is: ${newVol}`)
+      window.location.href = `/?picker=${newVol || ''}`
+    }
+  }
   function checkout(volId) {
     if (confirm(`Are you sure you want to check out ${volId}?`)) {
       url.searchParams.set('volId', volId)

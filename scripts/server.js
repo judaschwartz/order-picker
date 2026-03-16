@@ -161,7 +161,10 @@ const server = createServer((req, res) => {
           const pickerIds = order[1]?.[2]?.split(':')?.at(-1)?.split('-') || ['998']
           pickerIds.forEach(pickerId => {
             const volInd = volunteers.findIndex(v => String(v[0]) === pickerId)
-            if (volInd > -1 && !volunteers[volInd].slice(8)?.includes(query.lastUser)) volunteers[volInd].push(query.lastUser)
+            if (volInd > -1 && !volunteers[volInd].slice(8)?.includes(query.lastUser)) {
+              volunteers[volInd][8] = Number(volunteers[volInd][8]) + 1
+              volunteers[volInd].push(query.lastUser)
+            }
           })
           if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
@@ -414,7 +417,7 @@ const server = createServer((req, res) => {
                 const bb = pickLine.length - 1
                 content = fs.readFileSync('./www/admin/countdown.html').toString()
                   .replace('AA', `000${numPicked}`.slice(-3))
-                  .replace('BB', `000${bb}`.slice(-3))
+                  .replace('BB', `00${bb}`.slice(-2))
                   .replace('CC', `000${numOrders - numPicked - bb}`.slice(-3))
               } else if (query.page?.startsWith('item')) {
 //   commented code is for 3 lane csv for itmTotals
@@ -474,11 +477,11 @@ const server = createServer((req, res) => {
                 if (query.name) {
                   const id = volunteers.length + 8
                   console.log('adding volunteer ', query.name, ' with id ', id)
-                  volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.age, query.hasOrder, new Date().toTimeString().slice(0, 5),,])
+                  volunteers.push([id, query.name.replace(/,/g, ' '), query.phone, query.email, query.age, query.hasOrder, new Date().toTimeString().slice(0, 5),, 0])
                   rawVolunteers = volunteers.slice(1).map(l => `"${l[0]}": "${l[1]}"`).join(',')
                   volunteersJson = JSON.parse(`{${rawVolunteers}}`)
                   fs.writeFileSync(`${path}volunteers.csv`, volunteers.join('\n'))
-                  content += `Added volunteer ${query.name} with ID ${id}`
+                  content += `Added volunteer ${query.name} with ID <b id="newVol">${id}</b>`
                 } else if (query.volId) {
                   const volunteerIndex = volunteers.findIndex(v => String(v[0]) === query.volId)
                   if (volunteerIndex === -1) {
@@ -494,12 +497,12 @@ const server = createServer((req, res) => {
                 content += fs.readFileSync('./www/admin/volunteers.html').toString()
                 if (query.page?.startsWith('volunteers')) {
                   const active = volunteers.slice(2).filter(v => !v[7])
-                    .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v.length - 8])
+                    .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v[8]])
                   const inactive = volunteers.slice(2).filter(v => v[7]).map(v => {
                     const start = v[6].split(':').map(Number)
                     const end = v[7].split(':').map(Number)
                     const duration = `${end[0] - (end[1] < start[1] ? 1 : 0) - start[0]}:${String(end[1] + (end[1] < start[1] ? 60 : 0) - start[1]).padStart(2, '0')}`
-                    return [...v.slice(0, 8), v.length - 8, duration]
+                    return [...v.slice(0, 9), duration]
                   })
                   content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.active || 'A-ID', 'active')
                   content += adminTable([...volunteers[0], 'Time'], inactive, `${inactive.length} Finished Volunteers`, query.done || 'A-ID', 'done')

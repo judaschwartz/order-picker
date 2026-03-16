@@ -13,7 +13,7 @@ if (process.env.WIPE) {
   fs.copyFileSync(`${oldPath}allOrders.csv`, `${path}allOrders.csv`)
   fs.copyFileSync(`${oldPath}nameSlot.csv`, `${path}nameSlot.csv`)
   fs.writeFileSync(`${path}completed-orders.csv`, 'name,orderId,picker,qty,start,end,minutes,aisle')
-  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,picked\n998,Admin,,,,,,,')
+  fs.writeFileSync(`${path}volunteers.csv`, 'ID,Name,Phone,Email,Age,Own,Start,End,ttl\n998,Admin,,,,,,,0')
   fs.writeFileSync(`${path}pickLine.csv`, 'Name,ID,picker,ttl,Start,Aisle')
   fs.writeFileSync(`${path}alerts.json`, JSON.stringify({}))
   fs.writeFileSync(`${path}blocked.txt`, '')
