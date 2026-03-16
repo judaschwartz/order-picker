@@ -9,6 +9,9 @@ function toggleRefresh() {
   }
 }
 window.addEventListener('load', function() {
+  if (url.searchParams.get('page') === 'volunteer') {
+    document.querySelector('header').style.display = 'none'
+  }
   if (['combo', 'print', 'vol', 'alert', 'block'].some(p => url.searchParams.get('page').startsWith(p))) {
     document.querySelector('#auto-reload').style.display = 'none'
   } else {

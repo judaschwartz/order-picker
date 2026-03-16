@@ -31,20 +31,8 @@ tr:first-child {
   font-weight: bold;
   cursor: pointer;
 }
-#alerts form {
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  justify-items: center;
-  flex-direction: row;
-}
-#alerts input {
-  width: 100px;
-  font-size: 30px;
-  text-align: center;
-}
 #alerts textarea {
-  width: calc(100% - 280px);
+  margin: 10px;
   height: 80px;
 }
 .admin-form tr td:first-child {
@@ -53,11 +41,11 @@ tr:first-child {
   cursor: pointer;
   width: 40px;
 }
-#register form {
+.admin-form form {
   display: flex;
   flex-direction: column;
 }
-#register input, #register button {
+.admin-form input, .admin-form button {
   font-size: 20px;
   margin: 10px;
   line-height: 50px;

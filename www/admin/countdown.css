@@ -1,0 +1,25 @@
+  body {
+    padding: 3vh 1vw 0;
+    background: #000;
+    color: #fff;
+  }
+  * {
+    font-size: 13vh;
+    text-align: center;
+    margin: 1.2vh auto;
+    font-family: sans-serif;
+    line-height: 15vh;
+  }
+  h1 {
+    font-weight: initial;
+    color: #b8ffb8;
+  }
+  b {
+    font-size: 15vh;
+    font-family: system-ui;
+  }
+  h3 {
+    color: #ff0000;
+    font-family: monospace;
+    font-size: 20vh;
+  }

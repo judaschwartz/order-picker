@@ -18,12 +18,13 @@ if (process.env.WIPE) {
   fs.writeFileSync(`${path}alerts.json`, JSON.stringify({}))
   fs.writeFileSync(`${path}blocked.txt`, '')
   fs.writeFileSync(`${path}combined.txt`, '')
-  fs.mkdirSync(`${path}gen`, { recursive: true })
 }
-if (!fs.existsSync(`${path}gen`)) {
+if (!fs.existsSync(`${path}old`)) {
   console.log('You must run init-fresh on first attempt')
   process.exit()
 }
+fs.existsSync(`${path}gen`) && fs.moveSync(`${path}gen`, `${path}/old/gen`, { overwrite: true })
+fs.mkdirSync(`${path}gen`, { recursive: true })
 const orders = fs.readFileSync(`${path}allOrders.csv`).toString().trim().split("\n").filter(o => Number(o.split(',').slice(3, -2).join('')))
 const names = fs.readFileSync(`${path}nameSlot.csv`).toString().split("\n").slice(1).map(n => n.split(',').map(i => i.trim()))
 

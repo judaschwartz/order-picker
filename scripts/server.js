@@ -378,10 +378,10 @@ const server = createServer((req, res) => {
                   numOrders++
                   fs.writeFileSync(`${path}combined.txt`, combined.join(','))
                   fs.writeFileSync(`${path}orders.json`, rawOrders)
-                  fs.renameSync(`${path}gen/${comboId}.csv`,  `${path}gen/${comboId}-separated.csv`)
                   fs.renameSync(`${path}gen/${id1}-combo.csv`, `${path}gen/${id1}.csv`)
                   fs.renameSync(`${path}gen/${id2}-combo.csv`, `${path}gen/${id2}.csv`)
                   content += `Separated ${comboId} back into ${id1} and ${id2}`
+                  fs.renameSync(`${path}gen/${comboId}.csv`,  `${path}gen/${comboId}-separated.csv`)
                 }
                 content += fs.readFileSync('./www/admin/block.html').toString()
                 content += adminTable(['Unblock','ID'], blocked.map(b => [`<a href="/kadmin?page=block&unblock=${b}">&#10060;</a>`, b]), 'Blocked', 'ID', 'blocked')
@@ -391,7 +391,7 @@ const server = createServer((req, res) => {
                       `<a href="/kadmin?page=block&separate=${b}">&#10060;</a>`,
                       b,
                       combined[i + 1],
-                      b + combined[i + 1]
+                      b + combined[i + 1].padStart(3 * Math.ceil(combined[i + 1].length / 3), '0')
                     ]
                   }
                 }).filter(Boolean), 'Combined', query.combined || 'ID', 'combined')
@@ -406,13 +406,16 @@ const server = createServer((req, res) => {
 // only allow separating on block page `<a href="/kadmin?page=block&separate=${b}">&#10060;</a>`,
                       b,
                       combined[i + 1],
-                      b + combined[i + 1]
+                      b + combined[i + 1].padStart(3 * Math.ceil(combined[i + 1].length / 3), '0')
                     ]
                   }
                 }).filter(Boolean), 'Combined', query.combined || 'ID', 'combined')
               } else if (query.page?.startsWith('count')) {
                 const bb = pickLine.length - 1
-                content = fs.readFileSync('./www/admin/countdown.html').toString().replace('AA', numPicked).replace('BB', bb).replace('CC', numOrders - numPicked - bb)
+                content = fs.readFileSync('./www/admin/countdown.html').toString()
+                  .replace('AA', `000${numPicked}`.slice(-3))
+                  .replace('BB', `000${bb}`.slice(-3))
+                  .replace('CC', `000${numOrders - numPicked - bb}`.slice(-3))
               } else if (query.page?.startsWith('item')) {
 //   commented code is for 3 lane csv for itmTotals
 // content += fs.readFileSync('./www/admin/items.html').toString()
@@ -477,23 +480,30 @@ const server = createServer((req, res) => {
                   fs.writeFileSync(`${path}volunteers.csv`, volunteers.join('\n'))
                   content += `Added volunteer ${query.name} with ID ${id}`
                 } else if (query.volId) {
-                  content += `Checked out volunteer with ID ${query.volId}`
                   const volunteerIndex = volunteers.findIndex(v => String(v[0]) === query.volId)
-                  console.log('checking out volunteer ', query.volId, volunteerIndex)
-                  volunteers[volunteerIndex][7] = new Date().toTimeString().slice(0, 5)
-                  fs.writeFileSync(`${path}volunteers.csv`, volunteers.join('\n'))
+                  if (volunteerIndex === -1) {
+                    content += `could not find volunteer with ID ${query.volId}`
+                    console.error(`could not find volunteer with ID ${query.volId}`)
+                  } else {
+                    console.log('checking out volunteer ', query.volId, volunteerIndex)
+                    content += `Checked out volunteer with ID ${query.volId}`
+                    volunteers[volunteerIndex][7] = new Date().toTimeString().slice(0, 5)
+                    fs.writeFileSync(`${path}volunteers.csv`, volunteers.join('\n'))
+                  }
                 }
-                const active = volunteers.slice(2).filter(v => !v[7])
-                  .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v.length - 8])
-                const inactive = volunteers.slice(2).filter(v => v[7]).map(v => {
-                  const start = v[6].split(':').map(Number)
-                  const end = v[7].split(':').map(Number)
-                  const duration = `${end[0] - (end[1] < start[1] ? 1 : 0) - start[0]}:${String(end[1] + (end[1] < start[1] ? 60 : 0) - start[1]).padStart(2, '0')}`
-                  return [...v.slice(0, 8), v.length - 8, duration]
-                })
                 content += fs.readFileSync('./www/admin/volunteers.html').toString()
-                content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.active || 'A-ID', 'active')
-                content += adminTable([...volunteers[0], 'Time'], inactive, `${inactive.length} Finished Volunteers`, query.done || 'A-ID', 'done')
+                if (query.page?.startsWith('volunteers')) {
+                  const active = volunteers.slice(2).filter(v => !v[7])
+                    .map(v => [...v.slice(0, 7), `<button onclick="checkout('${v[0]}')">Checkout</button>`, v.length - 8])
+                  const inactive = volunteers.slice(2).filter(v => v[7]).map(v => {
+                    const start = v[6].split(':').map(Number)
+                    const end = v[7].split(':').map(Number)
+                    const duration = `${end[0] - (end[1] < start[1] ? 1 : 0) - start[0]}:${String(end[1] + (end[1] < start[1] ? 60 : 0) - start[1]).padStart(2, '0')}`
+                    return [...v.slice(0, 8), v.length - 8, duration]
+                  })
+                  content += adminTable(volunteers[0], active, `${active.length} Active Volunteers`, query.active || 'A-ID', 'active')
+                  content += adminTable([...volunteers[0], 'Time'], inactive, `${inactive.length} Finished Volunteers`, query.done || 'A-ID', 'done')
+                }
               } else content += fs.readFileSync('./www/admin/menu.html').toString()
             } catch (e) {
               content += `THERE WAS AN ERROR RENDERING ADMIN PAGE ${query.page}<br>` + e.stack.replaceAll('\n', '<br>')
