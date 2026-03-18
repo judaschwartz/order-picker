@@ -38,8 +38,8 @@ orders.forEach(l => {
   const name = [l[0], l[1], l[2]].join(' ').toUpperCase().trim().replace(/ +/g, ' ')
   jsonFile[parseInt(l.at(-1))] = name
   let ttl = 0
-  const itms = l.slice(3, -1 + ((orderIdPrefix[0] === 'P') * -1)) // -2 on pesach
-  if (orderIdPrefix[0] === 'P') {
+  const itms = l.slice(3, -1 + ((orderIdPrefix[0] === 'P'|| process.env.PRODUCE === 'true') * -1)) // -2 on pesach
+  if (orderIdPrefix[0] === 'P' || process.env.PRODUCE === 'true') {
     if (l.at(-2).trim() === 'Y') itms.push('4', '2', '4', '3', '1') // apple, carrot, onion, orange, potato
     else itms.push(0,0,0,0,0)
   }
@@ -83,11 +83,11 @@ orders.forEach(l => {
 fs.writeFileSync(`${path}orders.json`, JSON.stringify(jsonFile, null, 2))
 console.log('QTY Sanity Check')
 names.forEach((n) => {
-  const key = `${n[1]}-${n[2]}`
+  const key = `A${n[1]}-${n[2]}`
   const ttl = itmTotals[key]
-  if (ttl && n[3] && Number(n[3]) !== ttl) console.log('totals for '  + n[2] + ' are NOT the same ' + n[3] + ' ' + ttl)
-    else if (n[3]) console.log('totals for '  + n[2] + ' are the same ' + n[3])
-    else console.log('no totals for ' + n[2])
+  if (ttl && n[3] && Number(n[3]) !== ttl) console.log('totals for', n[2], 'are NOT the same', n[3], ttl)
+    else if (n[3] && ttl) console.log('totals for', n[2], 'are the same', n[3])
+    else console.log('no totals for', key)
 })
 // fs.writeFileSync(`${path}itmTotals.csv`, [
 //   'id,name,ordered,picked,col5,col4,col3,col2,col1',

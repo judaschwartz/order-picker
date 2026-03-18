@@ -1,17 +1,21 @@
 ﻿Pick Seq,Slot,Name,Qty
-9,A9,first item,6
-14,A14,forks,10
-10,A10,spoons,4
-4,A4,bowls,1
-3,A3,cups,4
-15,A15,more,1
-2,A2,stuff,0
-11,A11,again,2
-13,A13,plates two,3
-5,A5,forks 2,
-6,A6,spoons 2,3
-7,A7,bowls 2,6
-8,A8,cups2,7
-1,A1,more 2,1
-12,A12,last item,2
-16,A16,Produce,
+9,9,first item,6
+14,14,forks,10
+10,10,spoons,4
+4,4,bowls,1
+2,3,cups,4
+15,17,more,1
+3,2,stuff,0
+11,11,again,2
+13,13,plates two,3
+5,5,forks 2,
+6,6,spoons 2,3
+7,7,bowls 2,6
+8,8,cups2,7
+16,16,more 2,1
+12,12,last item,2
+17,19,3lb apples,8
+18,18,5lb Carrots,4
+19,21,3lb Onions,8
+20,20,4lb Oranges,6
+1,1,50lb Potatos,2
