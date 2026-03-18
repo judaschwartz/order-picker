@@ -8,18 +8,29 @@
     text-align: center;
     margin: 1.2vh auto;
     font-family: sans-serif;
-    line-height: 15vh;
+    line-height: 14vh;
   }
   h1 {
     font-weight: initial;
     color: #b8ffb8;
   }
   b {
-    font-size: 15vh;
+    font-size: 14vh;
     font-family: system-ui;
   }
   h3 {
     color: #ff0000;
     font-family: monospace;
     font-size: 20vh;
+  }
+  ul {
+    list-style: none;
+  }
+  ul li {
+    display: none;
+    font-size: 50px;
+    line-height: 50px;
+  }
+  ul li.active {
+    display: list-item;
   }

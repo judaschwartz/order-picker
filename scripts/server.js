@@ -6,6 +6,7 @@ import { launch } from 'puppeteer'
 import { print } from "unix-print"
 
 const soulName = `<img style="width: 290px; height: 70px; margin: 0 30px 0 0;" src="data:image/jpeg;base64,${fs.readFileSync('./www/lzn.jpg').toString('base64')}">`
+let shoutouts = []
 const today = new Date().toLocaleDateString().split('/')
 const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
 const path = `orders/${orderIdPrefix}/`
@@ -160,13 +161,16 @@ const server = createServer((req, res) => {
         if (query.lastUser) { // lastUser is the last order that was picked
           const order = readOrderFile(query.lastUser)
           const pickerIds = order[1]?.[2]?.split(':')?.at(-1)?.split('-') || ['998']
+          const volNames = []
           pickerIds.forEach(pickerId => {
             const volInd = volunteers.findIndex(v => String(v[0]) === pickerId)
             if (volInd > -1 && !volunteers[volInd].slice(8)?.includes(query.lastUser)) {
               volunteers[volInd][8] = Number(volunteers[volInd][8]) + 1
               volunteers[volInd].push(query.lastUser)
             }
+            if (volInd > -1) volNames.push(volunteers[volInd][1])
           })
+          shoutouts.push('<li>' + volNames.join(' & ') + ' completed an order!</li>')
           if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             console.info(`comment for order #${query.lastUser}: ${comment}`)
@@ -419,6 +423,8 @@ const server = createServer((req, res) => {
                   .replace('AA', `000${numPicked}`.slice(-3))
                   .replace('BB', `00${bb}`.slice(-2))
                   .replace('CC', `000${numOrders - numPicked - bb}`.slice(-3))
+                content += `<ul>${shoutouts.join('')}</ul>`
+                shoutouts = []
               } else if (query.page?.startsWith('item')) {
 //   commented code is for 3 lane csv for itmTotals
 // content += fs.readFileSync('./www/admin/items.html').toString()
@@ -454,23 +460,15 @@ const server = createServer((req, res) => {
                 content += fs.readFileSync('./www/admin/print.html').toString()
                 let orderId = query.printId || query.viewId
                 if (orderId && !fs.existsSync(`${path}gen/${orderId}.csv`)) {
-                  if (fs.existsSync(`${path}gen/${orderId}-combo.csv`)) {
-                    content += `order was moved to a combo order ${orderId}`
-                    orderId = `${orderId}-combo`
-                  } else {
-                    orderId = ''
-                    content += `could not find order # ${orderId}`
-                  }
+                  orderId = fs.existsSync(`${path}gen/${orderId}-combo.csv`) ? `${orderId}-combo` : ''
                 }
                 if (orderId) {
                   const order = readOrderFile(orderId)
                   if (query.printId) {
                     content += `attempting to print order # ${orderId}`
                     printOrder(orderId, order, query.printer)
-                  } else {
-                    content += adminTable(['seq', ...order[0].slice(0, 4)], order.slice(2).filter(o => o[1] || o[2]).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}, (${order[1][3]} items)`, query.print || '', 'print')
-                  }
-                }
+                  } else content += adminTable(['seq', ...order[0].slice(0, 4)], order.slice(2).filter(o => o[1] || o[2]).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}, (${order[1][3]} items)`, query.print || '', 'print')
+                } else content += `could not find order # ${orderId}`
               } else if (query.page?.startsWith('volunteer')) {
                 if (query.name) {
                   const id = volunteers.length + 8

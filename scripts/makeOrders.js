@@ -95,4 +95,4 @@ names.forEach((n) => {
 // ].join('\n'))
 fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmTotals, null, 2))
 console.log(`${orders.length} Orders Created`)
-if (process.env.WIPE) console.log('WIPE MODE ENABLED - ALL OLD DATA IN ORDERS FOLDER WAS DELETED')
+if (process.env.WIPE) console.log(`WIPE MODE ENABLED - ALL DATA IN ORDERS ${orderIdPrefix} FOLDER WAS DELETED`)

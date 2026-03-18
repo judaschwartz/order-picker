@@ -3,7 +3,7 @@
 ### Preparing the Data:
 1. Create a new in the `orders` directory. (e.g. `orders/P25`)
 2. Place `allOrders.csv` in the `orders/P25` directory.
-- Each row should be another order, ensure the file includes headers with items named as the name should appear in picking app. The first column is persons name, second is the phone number followed by a column for each item in the same sequence as they are on the order form. on pesach the second to last column is produce with a value of `N` or `Y`, the last column is the order ID.
+- Each row should be another order, ensure the file includes headers with items named as the name should appear in picking app. The first column is persons name, second is spouse name, third is the phone number, followed by a column for each item in the same sequence as they are on the order form. on pesach the second to last column is produce with a value of `N` or `Y`, the last column is the order ID.
 3. Place `nameSlot.csv` in the `orders/P25` directory.
 - Ensure the file includes `pick seq,slot,name,ss` headers. `pick seq` is the sequential number for picking, `slot` is the item ID, `name` is the item name, and `ss` indicates if the item is in a side slot. The number of rows in the nameSlot file should equal the product columns in the allOrders sheet, except for pesach when there should be 5 addtional rows at the end of nameSlot for apple, carrot, onion, orange, potato, that are populated with the correct qty's if the produce column has a `y` value
 4. Run `npm run init-fresh` to generate `orders/P25/orders.json` and `<ORDER_ID>.csv` files in the `orders/P25/gen` dir.
