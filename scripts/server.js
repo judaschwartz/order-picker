@@ -5,7 +5,7 @@ import { networkInterfaces } from 'os'
 import { launch } from 'puppeteer'
 import { print } from "unix-print"
 
-const soulName = `<p style="width: 600px; text-align: center; margin: 8px auto 0;font-size: 14px;">Kemach this year is dedicated L'ilui Nishmas<br>ר' יחזקאל בן ר' יחיאל אריה הכהן<br>ישראל מרדכי בן ר' יצחק</p>`
+const soulName = `<img style="width: 290px; height: 70px; margin: 0 30px 0 0;" src="data:image/jpeg;base64,${fs.readFileSync('./www/lzn.jpg').toString('base64')}">`
 const today = new Date().toLocaleDateString().split('/')
 const orderIdPrefix = process.env.ORDER_PREFIX || (Number(today[0]) > 6 ? 'S' : 'P') + (today[2].slice(-2))
 const path = `orders/${orderIdPrefix}/`
@@ -117,24 +117,26 @@ async function printOrder (id, order, printer = '') {
       }
     })
     const pickerId = order[1]?.[2]?.split(':')?.at(-1)?.split('-')?.[0] || '998'
-    let html = `<style>${fs.readFileSync('./www/style-pdf.css').toString()}</style>`
-    html += `<h4>${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</h4><table>${picked.join('')}</table>`
-    if (isCombo) html += `<p>This order was picked as a combo, you must count to confirm all items were received BEFORE splitting the order apart</p>`
-    if (missing.length > 1) html += `<h4>${Number(order[1][3]) - ttl} Items not filled from order:</h4><table>${missing.join('')}</table>`
-    if (order[1][1]) html += `<h4>Comments for this order:</h4><p>${order[1][1].replaceAll('&#010;', "<br>")}</p>`
+    let body = `<style>${fs.readFileSync('./www/style-pdf.css').toString()}</style>`
+    let headerTemplate = `<div style="width: 650px; padding-left: 30px; margin: 8px auto 0; font-size: 20px; display: flex; align-items: center; justify-content: space-between;"><span># ${orderIdPrefix}-${id} for ${order[1][0]}</span>${soulName}</div>`
+    headerTemplate += `<p style="position: fixed; left: 105px; top: 75px; font-size: 16px;">${ttl} items, Picked by ${volunteersJson[pickerId]} (# ${pickerId})</p>`
+    body += `<table>${picked.join('')}</table>`
+    if (isCombo) headerTemplate += '<p style="font-size: 13px; margin: 3px;">This order was picked as a combo, you must count to confirm all items were received BEFORE splitting the order apart</p>'
+    if (missing.length > 1) body += `<h4>${Number(order[1][3]) - ttl} Items not received from order:</h4><table>${missing.join('')}</table>`
+    if (order[1][1]) body += `<h4>Comments for this order:</h4><p>${order[1][1].replaceAll('&#010;', "<br>")}</p>`
     const browser = await launch()
     const page = await browser.newPage()
-    await page.setContent(html)
+    await page.setContent(body)
     const pdfPath = `${path}printed/print-${id}-${new Date().toLocaleTimeString().replaceAll(':', '_')}.pdf`
     await page.pdf({
       path: pdfPath,
       displayHeaderFooter: true,
-      headerTemplate: `<p style="width: 650px; padding-left: 30px; margin: 8px auto;font-size: 20px;"># ${orderIdPrefix}-${id} for ${order[1][0]}</p>${soulName}`,
-      footerTemplate: `<div style="margin: 0 auto 20px; width: 620px;"><p style="font-size: 13px; margin: 3px;"><span class="date"></span> Check the other side of this sheet for more information about your Kemach order<b style="float: right;margin: 0; font-size: 16px;"><span class="pageNumber"></span> of <span class="totalPages"></span><b/></p></div>`,
+      headerTemplate,
+      footerTemplate: '<div style="margin: 0 auto 20px; width: 620px;"><p style="font-size: 13px; margin: 3px;"><span class="date"></span> Check the other side of this sheet for more information about your Kemach order<b style="float: right;margin: 0; font-size: 16px;"><span class="pageNumber"></span> of <span class="totalPages"></span><b/></p></div>',
       format: 'Letter',
       waitForFonts: false,
       printBackground: true,
-      margin: { top: '2cm', right: '2.5cm', bottom: '1.8cm', left: '2.5cm' }
+      margin: { top: '3.1cm', right: '2.5cm', bottom: '1.8cm', left: '2.5cm' }
     })
     await browser.close()
     if (process.env.SKIP_PRINT !== 'true') await print(pdfPath, printer, ['-o sides=one-sided', '-o fit-to-page'])
@@ -147,11 +149,10 @@ async function printOrder (id, order, printer = '') {
 const server = createServer((req, res) => {
   const { pathname, query } = parse(req.url, true)
   if (req.method === 'GET') {
-    let warn = ''
     let filePath = '.' + pathname
     const user = query.user
     let comment = query.comment
-    let prdName, prdQty, prdPicked, slot, side, aisle
+    let prdName, prdQty, prdPicked, slot, side, nextItm, doneT, nextT, userName, warn = ''
     try {
       if (filePath === './' && (!fs.existsSync(`${path}gen/${user}.csv`) || blocked.includes(user))) {
         filePath = './start-index.html'
@@ -197,7 +198,7 @@ const server = createServer((req, res) => {
       } else if (filePath === './') {
         filePath = './index.html'
         const order = readOrderFile(user)
-        var userName = order[1][0]
+        userName = order[1][0]
         let lastItm = Number(query.itm) || 1
         let changed = false
         comment = typeof comment !== 'undefined' ? comment : order[1][1]
@@ -250,44 +251,43 @@ const server = createServer((req, res) => {
         if (order[1][2].includes(':')) {
           warn += 'THIS ORDER HAS BEEN <small>(at least partially) </small>PICKED<br><small>the quantity received box includes the number already picked last time</small><br>'
         }
-        var itm = order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
+        nextItm = order.slice(lastItm + 1).findIndex(r => Number(r[1]) || Number(r[2]))
         if (qty === 998) lastItm = order.length - 1
-        var done = order.slice(2, lastItm +1).map((r, i) => {
+        doneT = order.slice(2, lastItm +1).map((r, i) => {
           const ordered = Number(r[1]) || 0
           const got = Number(r[2]) || 0
           const klass = ordered !== got ? ' class="discrepancy"' : ''
           return ordered || got ? `<tr${klass} onclick="window.location='/?user=${user}&itm=${i + 1}';"><td>${r[3]}</td><td>${r[0]}</td><td>${ordered}</td><td>${got}</td></tr>` : ''
         }).filter(Boolean)
-        var next
         let headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">#</th><th width="30px">Got</th></tr>'
         if (query.api) { // api pick
           filePath = './api.html'
-        } else if (itm === -1 || lastItm === order.length - 1) { // after all items picked confirmation page
+        } else if (nextItm === -1 || lastItm === order.length - 1) { // after all items picked confirmation page
           const pickers = order[1]?.[2]?.split(':')?.at(-1)?.split('-')
-          next = `${pickers?.reduce((acc, id) => acc + (volunteersJson[id] || '') + ', ', '').slice(0, -2)} (# ${pickers?.join(',')})`
-          itm = order.length - 1
-          console.info(`Picker ${next} on confirmation page for order #${user}`)
-          warn += done.length ? '' : 'This order has no items to pick'
-          done = `<table>${headers}${done.join('')}</table>`
+          nextT = `${pickers?.reduce((acc, id) => acc + (volunteersJson[id] || '') + ', ', '').slice(0, -2)} (# ${pickers?.join(',')})`
+          nextItm = order.length - 1
+          console.info(`Picker ${nextT} on confirmation page for order #${user}`)
+          warn += doneT.length ? '' : 'This order has no items to pick'
+          doneT = `<table>${headers}${doneT.join('')}</table>`
           filePath = './end-index.html'
           fs.writeFileSync(`${path}itmTotals.json`, JSON.stringify(itmsJson, null, 2))
 //  fs.writeFileSync(`${path}itmTotals.csv`, itmTotals.join('\n'))
         } else {
-          done = `<table>${headers}${done.reverse().join('')}</table>`
-          itm = itm + lastItm + 1
-          warn += prodAlerts['POP ' + order[itm][3]] ? `<script>alert('${ prodAlerts['POP ' + order[itm][3]]}')</script>` : ''
-          next = order.slice(itm + 1).map((r, i) => {
+          doneT = `<table>${headers}${doneT.reverse().join('')}</table>`
+          nextItm = nextItm + lastItm + 1
+          slot = order[nextItm][3]
+          warn += prodAlerts['POP ' + slot] ? `<script>alert('${ prodAlerts['POP ' + slot]}')</script>` : ''
+          nextT = order.slice(nextItm + 1).map((r, i) => {
             const pick = (Number(r[1]) || 0) - (Number(r[2]) || 0)
-            return Number(r[1]) ? `<tr data-itm="${i+itm+1}" data-n="${r[1]}"><td>${r[3]}</td><td>${r[0]}</td><td>${pick}</td></tr>` : ''
+            return Number(r[1]) ? `<tr data-itm="${i+nextItm+1}" data-n="${r[1]}"><td>${r[3]}</td><td>${r[0]}</td><td>${pick}</td></tr>` : ''
           }).filter(Boolean)
           headers = '<tr><th width="40px">ID</th><th>Item Name</th><th width="30px">Needed</th></tr>'
-          next = `<table>${headers}${next.join('')}</table>`
+          nextT = `<table>${headers}${nextT.join('')}</table>`
         }
-        slot = order[itm][3]
-        prdName = order[itm][0] + (prodAlerts[slot] ? `<i>${prodAlerts[slot]}</i>` : '')
-        side = order[itm][4] ? 'side' : ''
-        prdQty = order[itm][1] || '0'
-        prdPicked = order[itm][2] !== '0' ? order[itm][2] : ''
+        prdName = order[nextItm][0] + (prodAlerts[slot] ? `<i>${prodAlerts[slot]}</i>` : '')
+        side = order[nextItm][4] ? 'side' : ''
+        prdQty = order[nextItm][1] || '0'
+        prdPicked = order[nextItm][2] !== '0' ? order[nextItm][2] : ''
       } else if (filePath === './kadmin') {filePath = './admin/index.html'}
     } catch (error) {
       warn = error.stack.replaceAll('\n', '<br>')
@@ -317,12 +317,12 @@ const server = createServer((req, res) => {
             content = content.replace(/USER|DONE_LIST|NEXT_LIST|CMT|QTY|FILLED|ITM|SLOT|SIDE|ULAST|NAME/g, (matched) => {
               switch(matched){
                 case 'USER': return user
-                case 'DONE_LIST': return done
-                case 'NEXT_LIST': return next
+                case 'DONE_LIST': return doneT
+                case 'NEXT_LIST': return nextT
                 case 'CMT': return comment
                 case 'QTY': return prdQty
                 case 'FILLED': return prdPicked
-                case 'ITM': return itm
+                case 'ITM': return nextItm
                 case 'SLOT': return slot
                 case 'SIDE': return side
                 case 'ULAST': return userName
@@ -453,24 +453,22 @@ const server = createServer((req, res) => {
               } else if (query.page?.startsWith('print')) {
                 content += fs.readFileSync('./www/admin/print.html').toString()
                 let orderId = query.printId || query.viewId
-                if (orderId) {
-                  if (!fs.existsSync(`${path}gen/${orderId}.csv`)) {
-                    if (fs.existsSync(`${path}gen/${orderId}-combo.csv`)) {
-                      content += `order was moved to a combo order ${orderId}`
-                      orderId = `${orderId}-combo`
-                    } else {
-                      orderId = ''
-                      content += `could not find order # ${orderId}`
-                    }
+                if (orderId && !fs.existsSync(`${path}gen/${orderId}.csv`)) {
+                  if (fs.existsSync(`${path}gen/${orderId}-combo.csv`)) {
+                    content += `order was moved to a combo order ${orderId}`
+                    orderId = `${orderId}-combo`
+                  } else {
+                    orderId = ''
+                    content += `could not find order # ${orderId}`
                   }
-                  if (orderId) {
-                    const order = readOrderFile(orderId)
-                    if (query.printId) {
-                     content += `attempting to print order # ${orderId}`
-                     printOrder(orderId, order, query.printer)
-                    } else {
-                      content += adminTable(['seq', ...order[0]], order.slice(2).filter(o => o[1] || o[2]).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}, (${order[1][3]} items)`, query.print || '', 'print')
-                    }
+                }
+                if (orderId) {
+                  const order = readOrderFile(orderId)
+                  if (query.printId) {
+                    content += `attempting to print order # ${orderId}`
+                    printOrder(orderId, order, query.printer)
+                  } else {
+                    content += adminTable(['seq', ...order[0].slice(0, 4)], order.slice(2).filter(o => o[1] || o[2]).map((o, i) => [i + 1, ...o]), `#${orderId} ${order[1][0]}, (${order[1][3]} items)`, query.print || '', 'print')
                   }
                 }
               } else if (query.page?.startsWith('volunteer')) {

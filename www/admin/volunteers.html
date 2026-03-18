@@ -58,7 +58,7 @@
     }
   }
   let suggestions = []
-  fetch('admin/vol.txt').then(res => res.text()).then(t => suggestions = t.split('\n').map(l => l.toLowerCase().trim()))
+  // fetch('admin/vol.txt').then(res => res.text()).then(t => suggestions = t.split('\n').map(l => l.toLowerCase().trim()))
   const nameInput = document.querySelector('#name')
   nameInput.addEventListener('input', (event) => {
     if (event.target.value.length < 3) return

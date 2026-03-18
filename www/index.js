@@ -4,9 +4,6 @@ const picker = url.searchParams.get('picker')
 const assist = url.searchParams.get('assist')
 if (picker) {
   url.searchParams.delete('picker')
-  window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
-}
-if (assist) {
   url.searchParams.delete('assist')
   window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
 }
