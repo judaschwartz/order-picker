@@ -12,4 +12,7 @@
   <header>
     <div class="burger" onclick="window.location.href = '/kadmin'">&#9776;</div>
     <label id="auto-reload"><input type="checkbox" onclick="toggleRefresh()" checked>Auto Refresh Page</label>
+    <div id="search">
+      <input type="text" id="searchInput" placeholder="Search by name or order ID" oninput="updateTables(this.value.toUpperCase())" autocomplete="off">
+    </div>
   </header>

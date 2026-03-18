@@ -71,6 +71,11 @@ header input{
   height: 18px;
   margin: 5px 5px 0 0;
 }
+#search input {
+  width: 250px;
+  height: 30px;
+  margin: 10px;
+}
 
 .burger {
   font-size: 35px;

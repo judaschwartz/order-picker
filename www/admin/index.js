@@ -1,5 +1,6 @@
 const url = new URL(location.href)
 let autoRefresh
+const rows =[]
 function toggleRefresh() {
   if (!document.querySelector('#auto-reload input').checked) {
     console.log('Refresh stopped')
@@ -9,7 +10,7 @@ function toggleRefresh() {
   }
 }
 window.addEventListener('load', function() {
-  if (['combo', 'print', 'vol', 'alert', 'block'].some(p => url.searchParams.get('page').startsWith(p))) {
+  if (['combo', 'print', 'vol', 'alert', 'block'].some(p => url.searchParams.get('page')?.startsWith(p))) {
     document.querySelector('#auto-reload').style.display = 'none'
   } else {
     autoRefresh = setInterval(() => {window.location.reload()}, (60 * 1000))
@@ -46,8 +47,17 @@ window.addEventListener('load', function() {
   });
   ['name', 'phone', 'email', 'printer', 'age', 'hasOrder', 'volId', 'block', 'unblock', 'separate', 'printId', 'prodId', 'itmAlert', 'itmKey', 'qty', 'remove', 'id1', 'id2'].forEach(param => url.searchParams.delete(param))
   window.history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString())
+  document.querySelectorAll('.adminTable table').forEach(t => t.querySelectorAll('tr').forEach((r, i) => i && rows.push(r)))
 })
 function page(page) {
   url.searchParams.set('page', page)
   window.location.href = url.href
+}
+function updateTables(value) {
+  document.querySelector('#auto-reload input').checked = false || clearInterval(autoRefresh)
+  rows.forEach(t => {
+    let text = t.innerText.toUpperCase().replaceAll("\t", ' ')
+    value.length < 4 && (text = text.replace(/\b\d{10}\b/g, ''))
+    t.style.display = text.includes(value) ? 'table-row' : 'none'
+  })
 }
