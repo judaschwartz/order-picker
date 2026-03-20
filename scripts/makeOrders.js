@@ -76,6 +76,7 @@ orders.forEach(l => {
       }
       ttl += qty
     }
+    // if (l.at(-1) === '437' && qty) console.log(names[i][0], names[i][2], qty)
     return [names[i][0], names[i][2], qty, , 'A' + names[i][1],]
   }).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(l => l.slice(1).join(','))
   fs.writeFileSync(`${path}gen/${parseInt(l.at(-1))}.csv`, ['name,ordered,picked,slot,ss', `${name},,,${ttl},`, ...order].join("\n"))

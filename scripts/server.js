@@ -170,7 +170,7 @@ const server = createServer((req, res) => {
             }
             if (volInd > -1) volNames.push(volunteers[volInd][1])
           })
-          shoutouts.push('<li>' + volNames.join(' & ') + ' completed an order!</li>')
+          shoutouts.push(volNames.join(' & '))
           if (typeof comment !== 'undefined' && comment.replace(/[,\n\r]/g, '') !== order[1][1]?.replaceAll("&#44;", '')?.replaceAll(/&#010;/g, '')) {
             order[1][1] = comment && comment.replace(/,/g, '&#44;').replace(/\n/g, '&#010;').replace(/\r/g, '')
             console.info(`comment for order #${query.lastUser}: ${comment}`)
@@ -423,7 +423,7 @@ const server = createServer((req, res) => {
                   .replace('AA', `000${numPicked}`.slice(-3))
                   .replace('BB', `00${bb}`.slice(-2))
                   .replace('CC', `000${numOrders - numPicked - bb}`.slice(-3))
-                content += `<ul>${shoutouts.join('')}</ul>`
+                content += `<ul>${shoutouts.map(s => `<li>${s}</li>`).join('')}</ul>`
                 shoutouts = []
               } else if (query.page?.startsWith('item')) {
 //   commented code is for 3 lane csv for itmTotals
